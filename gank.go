@@ -1,5 +1,5 @@
 package main
 
-func fetchGank() {
+func fetchGank(link chan string) {
 
 }

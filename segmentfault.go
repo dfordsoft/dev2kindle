@@ -1,5 +1,5 @@
 package main
 
-func fetchSegmentFault() {
+func fetchSegmentFault(link chan string) {
 
 }

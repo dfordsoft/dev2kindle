@@ -1,5 +1,5 @@
 package main
 
-func fetchXitu() {
+func fetchXitu(link chan string) {
 
 }

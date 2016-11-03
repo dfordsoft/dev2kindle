@@ -1,5 +1,5 @@
 package main
 
-func fetchGeekCSDN() {
+func fetchGeekCSDN(link chan string) {
 
 }

@@ -1,5 +1,5 @@
 package main
 
-func fetchIwgc() {
+func fetchIwgc(link chan string) {
 
 }

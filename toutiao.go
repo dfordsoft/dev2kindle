@@ -1,5 +1,5 @@
 package main
 
-func fetchToutiao() {
+func fetchToutiao(link chan string) {
 
 }
