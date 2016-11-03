@@ -15,7 +15,6 @@ func (t *Toutiao) resolveFinalURL(u string) string {
 	resp, err := http.Get(u)
 	if err != nil {
 		fmt.Printf("resolving url %s failed => %v", u, err.Error())
-		return ""
 	}
 
 	finalURL := resp.Request.URL.String()

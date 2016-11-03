@@ -139,7 +139,7 @@ func main() {
 		for {
 			select {
 			case u := <-link:
-				if theURL, e := url.Parse(u); e == nil {
+				if theURL, e := url.Parse(u); e == nil && theURL.Host != "" {
 					if theURL.Host != "mp.weixin.qq.com" {
 						query := theURL.Query().Encode()
 						queries := strings.Split(query, "&")
