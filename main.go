@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -81,7 +83,7 @@ func existsInDatabase(u string, db *sql.DB) bool {
 }
 
 func insertIntoDatabase(u string, db *sql.DB) bool {
-	_, err := db.Exec(fmt.Sprintf("insert into foo(url) values('%s')", u))
+	_, err := db.Exec(fmt.Sprintf("insert into links(url) values('%s')", u))
 	if err != nil {
 		log.Fatal(err)
 		return false
@@ -137,13 +139,34 @@ func main() {
 		for {
 			select {
 			case u := <-link:
-				collectLink(u)
-				addLinkCount++
-				if addLinkCount > 50 {
-					i.PushToKindle()
-					time.Sleep(30 * time.Minute) // remove after all links are pushed to kindle
-					i.RemoveAllLinks()
-					addLinkCount = 0
+				if theURL, e := url.Parse(u); e == nil {
+					if theURL.Host != "mp.weixin.qq.com" {
+						query := theURL.Query().Encode()
+						queries := strings.Split(query, "&")
+						var newQueries []string
+						for _, q := range queries {
+							qq := strings.Split(q, "=")
+							if len(qq) == 2 && qq[1] == "toutiao.io" {
+								continue
+							}
+							newQueries = append(newQueries, q)
+						}
+						if len(newQueries) == 0 {
+							u = fmt.Sprintf("%s://%s%s", theURL.Scheme, theURL.Host, theURL.Path)
+						} else {
+							u = fmt.Sprintf("%s://%s%s?%s",
+								theURL.Scheme, theURL.Host, theURL.Path, strings.Join(newQueries, "&"))
+						}
+					}
+
+					collectLink(u)
+					addLinkCount++
+					if addLinkCount > 50 {
+						i.PushToKindle()
+						time.Sleep(30 * time.Minute) // remove after all links are pushed to kindle
+						i.RemoveAllLinks()
+						addLinkCount = 0
+					}
 				}
 			}
 		}
@@ -159,6 +182,7 @@ func main() {
 	c := &GeekCSDN{}
 	i := &Iwgc{}
 	s := &SegmentFault{}
+	t.Fetch(link)
 	for {
 		select {
 		case <-hourTicker.C:
