@@ -130,8 +130,25 @@ func main() {
 	i.Login()
 	i.GetFormKey()
 
-	addLinkCount := 0
-	link := make(chan string)
+	link := make(chan string, 10)
+
+	go func() {
+		addLinkCount := 0
+		for {
+			select {
+			case u := <-link:
+				collectLink(u)
+				addLinkCount++
+				if addLinkCount > 50 {
+					i.PushToKindle()
+					time.Sleep(30 * time.Minute) // remove after all links are pushed to kindle
+					i.RemoveAllLinks()
+					addLinkCount = 0
+				}
+			}
+		}
+	}()
+
 	hourTicker := time.NewTicker(60 * time.Minute)
 	defer func() {
 		hourTicker.Stop()
@@ -145,14 +162,6 @@ func main() {
 			go fetchGeekCSDN(link)
 			go fetchIwgc(link)
 			go fetchSegmentFault(link)
-		case u := <-link:
-			collectLink(u)
-			addLinkCount++
-			if addLinkCount > 50 {
-				go i.PushToKindle()
-				// TODO: wait for some minute, eg, 30m
-				go i.RemoveAllLinks()
-			}
 		}
 	}
 }
