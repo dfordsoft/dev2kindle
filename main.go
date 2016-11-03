@@ -52,6 +52,12 @@ func main() {
 	for {
 		select {
 		case <-hourTicker.C:
+			go fetchToutiao()
+			go fetchXitu()
+			go fetchGank()
+			go fetchGeekCSDN()
+			go fetchIwgc()
+			go fetchSegmentFault()
 		}
 	}
 }

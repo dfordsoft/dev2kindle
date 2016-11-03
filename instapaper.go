@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -87,6 +88,54 @@ doRequest:
 	i.cookie = strings.Join(cookie, "; ")
 }
 
+func (i *Instapaper) EditUrl(u string) {
+	postValues := url.Values{
+		"bookmark[url]": {u},
+		"form_key":      {i.formKey},
+	}
+
+	retry := 0
+doRequest:
+	req, err := http.NewRequest("POST", "https://www.instapaper.com/edit", strings.NewReader(postValues.Encode()))
+	if err != nil {
+		fmt.Println("Could not parse edit link request:", err)
+		return
+	}
+
+	req.SetBasicAuth(i.Username, i.Password)
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Could not send edit link request:", err)
+		retry++
+		if retry < 3 {
+			time.Sleep(3 * time.Second)
+			goto doRequest
+		}
+		return
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != 201 {
+		fmt.Println("edit link request not 201", resp.StatusCode)
+		retry++
+		if retry < 3 {
+			time.Sleep(3 * time.Second)
+			goto doRequest
+		}
+		return
+	}
+	_, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("cannot read edit link content", err)
+		retry++
+		if retry < 3 {
+			time.Sleep(3 * time.Second)
+			goto doRequest
+		}
+		return
+	}
+}
+
 func (i *Instapaper) AddUrl(u string) {
 	postValues := url.Values{
 		"url": {u},
@@ -134,8 +183,7 @@ doRequest:
 	}
 }
 
-func (i *Instapaper) getIDs(u string) []int {
-
+func (i *Instapaper) getIDs(u string) (res []int) {
 	retry := 0
 doRequest:
 	req, err := http.NewRequest("GET", u, nil)
@@ -173,7 +221,7 @@ doRequest:
 		}
 		return nil
 	}
-	_, err = ioutil.ReadAll(resp.Body)
+	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println("cannot read get IDs content", err)
 		retry++
@@ -184,10 +232,19 @@ doRequest:
 		return nil
 	}
 
-	return nil
+	r := regexp.MustCompile(`/delete/([0-9]+)`)
+	ss := r.FindAllSubmatch(content, -1)
+	for _, s := range ss {
+		id, e := strconv.Atoi(string(s[1]))
+		if e == nil {
+			res = append(res, id)
+		}
+	}
+	return res
 }
 
 func (i *Instapaper) removeLink(id int) {
+doRequest:
 	req, err := http.NewRequest("POST", "https://www.instapaper.com/delete_articles", strings.NewReader(fmt.Sprintf("[%d]", id)))
 	if err != nil {
 		fmt.Println("Could not parse remove link request:", err)
@@ -206,7 +263,7 @@ func (i *Instapaper) removeLink(id int) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 	req.Header.Set("X-Requested-With", "XMLHttpRequest")
 	req.Header.Set("Cookie", i.cookie)
-doRequest:
+
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Could not send remove link request:", err)
