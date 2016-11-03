@@ -153,15 +153,21 @@ func main() {
 	defer func() {
 		hourTicker.Stop()
 	}()
+	t := &Toutiao{}
+	x := &Xitu{}
+	g := &Gank{}
+	c := &GeekCSDN{}
+	i := &Iwgc{}
+	s := &SegmentFault{}
 	for {
 		select {
 		case <-hourTicker.C:
-			go fetchToutiao(link)
-			go fetchXitu(link)
-			go fetchGank(link)
-			go fetchGeekCSDN(link)
-			go fetchIwgc(link)
-			go fetchSegmentFault(link)
+			go t.Fetch(link)
+			go x.Fetch(link)
+			go g.Fetch(link)
+			go c.Fetch(link)
+			go i.Fetch(link)
+			go s.Fetch(link)
 		}
 	}
 }

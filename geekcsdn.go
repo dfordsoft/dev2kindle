@@ -1,5 +1,8 @@
 package main
 
-func fetchGeekCSDN(link chan string) {
+type GeekCSDN struct {
+}
+
+func (c *GeekCSDN) Fetch(link chan string) {
 
 }

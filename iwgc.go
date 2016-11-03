@@ -1,5 +1,8 @@
 package main
 
-func fetchIwgc(link chan string) {
+type Iwgc struct {
+}
+
+func (i *Iwgc) Fetch(link chan string) {
 
 }

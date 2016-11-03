@@ -1,5 +1,8 @@
 package main
 
-func fetchXitu(link chan string) {
+type Xitu struct {
+}
+
+func (x *Xitu) Fetch(link chan string) {
 
 }

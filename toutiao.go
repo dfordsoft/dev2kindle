@@ -1,5 +1,8 @@
 package main
 
-func fetchToutiao(link chan string) {
+type Toutiao struct {
+}
+
+func (t *Toutiao) Fetch(link chan string) {
 
 }

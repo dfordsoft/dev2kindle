@@ -1,5 +1,8 @@
 package main
 
-func fetchGank(link chan string) {
+type Gank struct {
+}
+
+func (g *Gank) Fetch(link chan string) {
 
 }

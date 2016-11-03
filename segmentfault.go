@@ -1,5 +1,8 @@
 package main
 
-func fetchSegmentFault(link chan string) {
+type SegmentFault struct {
+}
+
+func (s *SegmentFault) Fetch(link chan string) {
 
 }
