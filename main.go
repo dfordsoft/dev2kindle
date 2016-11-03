@@ -141,6 +141,20 @@ func main() {
 			case u := <-link:
 				if theURL, e := url.Parse(u); e == nil && theURL.Host != "" {
 					if theURL.Host != "mp.weixin.qq.com" {
+						blacklist := []string{
+							"weekly.manong.io",
+							"github.com",
+						}
+						inBlacklist := false
+						for _, b := range blacklist {
+							if b == theURL.Host {
+								inBlacklist = true
+								break
+							}
+						}
+						if inBlacklist {
+							break
+						}
 						query := theURL.Query().Encode()
 						queries := strings.Split(query, "&")
 						var newQueries []string
