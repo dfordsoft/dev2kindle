@@ -8,6 +8,17 @@ import (
 	"time"
 )
 
+var (
+	crawlSubjectIDs = []int{
+		4755,   // 三高：高可用高性能高并发
+		1996,   // JAVA 程序员技术分享
+		46756,  // redis
+		101482, // 进击的架构师
+		50375,  // APP 后端开发
+		14908,  // fir.im
+	}
+)
+
 type Toutiao struct {
 }
 
@@ -24,7 +35,15 @@ func (t *Toutiao) resolveFinalURL(u string) string {
 func (t *Toutiao) Fetch(link chan string) {
 	now := time.Now()
 	u := fmt.Sprintf("https://toutiao.io/prev/%4.4d-%2.2d-%2.2d", now.Year(), now.Month(), now.Day())
+	t.fetchArticles(link, u)
 
+	for _, id := range crawlSubjectIDs {
+		u := fmt.Sprintf("https://toutiao.io/subjects/%d", id)
+		t.fetchArticles(link, u)
+	}
+}
+
+func (t *Toutiao) fetchArticles(link chan string, u string) {
 	retry := 0
 doRequest:
 	req, err := http.NewRequest("GET", u, nil)
