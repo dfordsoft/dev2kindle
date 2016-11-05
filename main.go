@@ -103,7 +103,6 @@ func collectLink(u string) {
 }
 
 func main() {
-	fmt.Println("push articles for developers to kindle")
 	quitAfterPushed := false
 	clearInstapaper := false
 	pushToKindle := false
@@ -165,7 +164,27 @@ func main() {
 				return
 			case u := <-link:
 				if theURL, e := url.Parse(u); e == nil && theURL.Host != "" {
-					if theURL.Host != "mp.weixin.qq.com" {
+					if theURL.Host == "mp.weixin.qq.com" {
+						query := theURL.Query().Encode()
+						queries := strings.Split(query, "&")
+						var newQueries []string
+						needs := map[string]bool{
+							"__biz": true,
+							"sn":    true,
+							"mid":   true,
+							"idx":   true,
+						}
+						for _, q := range queries {
+							qq := strings.Split(q, "=")
+							if len(qq) == 2 {
+								if _, ok := needs[qq[0]]; ok {
+									newQueries = append(newQueries, q)
+								}
+							}
+						}
+						u = fmt.Sprintf("%s://%s%s?%s",
+							theURL.Scheme, theURL.Host, theURL.Path, strings.Join(newQueries, "&"))
+					} else {
 						blacklist := []string{
 							"weekly.manong.io",
 							"github.com",
