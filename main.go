@@ -106,11 +106,13 @@ func main() {
 	fmt.Println("push articles for developers to kindle")
 	quitAfterPushed := false
 	clearInstapaper := false
+	pushToKindle := false
 	flag.StringVar(&kindleMailbox, "kindle", "", "kindle mailbox")
 	flag.StringVar(&instapaperUsername, "username", "", "instapaper username")
 	flag.StringVar(&instapaperPassword, "password", "", "instapaper password")
 	flag.BoolVar(&quitAfterPushed, "quitAfterPushed", false, "quit after pushed")
 	flag.BoolVar(&clearInstapaper, "clearInstapaper", false, "clear instapaper article list")
+	flag.BoolVar(&pushToKindle, "pushToKindle", false, "push articles in instapaer to kindle now")
 	flag.Parse()
 
 	if len(kindleMailbox) == 0 || len(instapaperPassword) == 0 || len(instapaperUsername) == 0 {
@@ -124,6 +126,7 @@ func main() {
 	fmt.Println("Instapaper password:", instapaperPassword)
 	fmt.Println("Quit after pushed:", quitAfterPushed)
 	fmt.Println("Clear Instapaper articles:", clearInstapaper)
+	fmt.Println("Push To Kindle:", pushToKindle)
 
 	client = &http.Client{
 		Timeout: 30 * time.Second,
@@ -141,6 +144,11 @@ func main() {
 	}
 	i.Login()
 	i.GetFormKey()
+
+	if pushToKindle {
+		i.PushToKindle()
+		return
+	}
 
 	if clearInstapaper {
 		i.RemoveAllLinks()
