@@ -23,9 +23,17 @@ type Toutiao struct {
 }
 
 func (t *Toutiao) resolveFinalURL(u string) string {
+	retry := 0
+doResolve:
 	resp, err := http.Get(u)
 	if err != nil {
 		fmt.Printf("resolving url %s failed => %v", u, err.Error())
+		if retry < 3 {
+			retry++
+			goto doResolve
+		} else {
+			return ""
+		}
 	}
 
 	finalURL := resp.Request.URL.String()
@@ -87,6 +95,9 @@ doRequest:
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {
 		lnk := fmt.Sprintf("https://toutiao.io/k/%s", string(l[1]))
-		link <- t.resolveFinalURL(lnk)
+		resolvedURL := t.resolveFinalURL(lnk)
+		if resolvedURL != "" {
+			link <- resolvedURL
+		}
 	}
 }
