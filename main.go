@@ -104,9 +104,13 @@ func collectLink(u string) {
 
 func main() {
 	fmt.Println("push articles for developers to kindle")
+	quitAfterPushed := false
+	clearInstapaper := false
 	flag.StringVar(&kindleMailbox, "kindle", "", "kindle mailbox")
 	flag.StringVar(&instapaperUsername, "username", "", "instapaper username")
 	flag.StringVar(&instapaperPassword, "password", "", "instapaper password")
+	flag.BoolVar(&quitAfterPushed, "quitAfterPushed", false, "quit after pushed")
+	flag.BoolVar(&clearInstapaper, "clearInstapaper", false, "clear instapaper article list")
 	flag.Parse()
 
 	if len(kindleMailbox) == 0 || len(instapaperPassword) == 0 || len(instapaperUsername) == 0 {
@@ -114,6 +118,12 @@ func main() {
 		flag.Usage()
 		return
 	}
+
+	fmt.Println("kindle mailbox:", kindleMailbox)
+	fmt.Println("Instapaper username:", instapaperUsername)
+	fmt.Println("Instapaper password:", instapaperPassword)
+	fmt.Println("Quit after pushed:", quitAfterPushed)
+	fmt.Println("Clear Instapaper articles:", clearInstapaper)
 
 	client = &http.Client{
 		Timeout: 30 * time.Second,
@@ -132,12 +142,19 @@ func main() {
 	i.Login()
 	i.GetFormKey()
 
-	link := make(chan string, 10)
+	if clearInstapaper {
+		i.RemoveAllLinks()
+		return
+	}
 
+	link := make(chan string, 10)
+	quit := make(chan bool)
 	go func() {
 		addLinkCount := 0
 		for {
 			select {
+			case <-quit:
+				return
 			case u := <-link:
 				if theURL, e := url.Parse(u); e == nil && theURL.Host != "" {
 					if theURL.Host != "mp.weixin.qq.com" {
@@ -196,7 +213,18 @@ func main() {
 	c := &GeekCSDN{}
 	i := &Iwgc{}
 	s := &SegmentFault{}
+
 	t.Fetch(link)
+	x.Fetch(link)
+	g.Fetch(link)
+	c.Fetch(link)
+	i.Fetch(link)
+	s.Fetch(link)
+
+	if quitAfterPushed {
+		quit <- true
+		return
+	}
 	for {
 		select {
 		case <-hourTicker.C:
