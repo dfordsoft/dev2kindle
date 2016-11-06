@@ -102,6 +102,62 @@ func collectLink(u string) {
 	insertIntoDatabase(u, db)
 }
 
+func formatURL(theURL *url.URL) (u string) {
+	if theURL.Host == "mp.weixin.qq.com" {
+		query := theURL.Query().Encode()
+		queries := strings.Split(query, "&")
+		var newQueries []string
+		needs := map[string]bool{
+			"__biz": true,
+			"sn":    true,
+			"mid":   true,
+			"idx":   true,
+		}
+		for _, q := range queries {
+			qq := strings.Split(q, "=")
+			if len(qq) == 2 {
+				if _, ok := needs[qq[0]]; ok {
+					newQueries = append(newQueries, q)
+				}
+			}
+		}
+		u = fmt.Sprintf("%s://%s%s?%s",
+			theURL.Scheme, theURL.Host, theURL.Path, strings.Join(newQueries, "&"))
+	} else {
+		blacklist := []string{
+			"weekly.manong.io",
+			"github.com",
+		}
+		inBlacklist := false
+		for _, b := range blacklist {
+			if b == theURL.Host {
+				inBlacklist = true
+				return
+			}
+		}
+		if inBlacklist {
+			return
+		}
+		query := theURL.Query().Encode()
+		queries := strings.Split(query, "&")
+		var newQueries []string
+		for _, q := range queries {
+			qq := strings.Split(q, "=")
+			if len(qq) == 2 && qq[1] == "toutiao.io" {
+				continue
+			}
+			newQueries = append(newQueries, q)
+		}
+		if len(newQueries) == 0 {
+			u = fmt.Sprintf("%s://%s%s", theURL.Scheme, theURL.Host, theURL.Path)
+		} else {
+			u = fmt.Sprintf("%s://%s%s?%s",
+				theURL.Scheme, theURL.Host, theURL.Path, strings.Join(newQueries, "&"))
+		}
+	}
+	return
+}
+
 func main() {
 	quitAfterPushed := false
 	clearInstapaper := false
@@ -164,66 +220,15 @@ func main() {
 				return
 			case u := <-link:
 				if theURL, e := url.Parse(u); e == nil && theURL.Host != "" {
-					if theURL.Host == "mp.weixin.qq.com" {
-						query := theURL.Query().Encode()
-						queries := strings.Split(query, "&")
-						var newQueries []string
-						needs := map[string]bool{
-							"__biz": true,
-							"sn":    true,
-							"mid":   true,
-							"idx":   true,
+					if u = formatURL(theURL); u != "" {
+						collectLink(u)
+						addLinkCount++
+						if addLinkCount > 50 {
+							i.PushToKindle()
+							time.Sleep(30 * time.Minute) // remove after all links are pushed to kindle
+							i.RemoveAllLinks()
+							addLinkCount = 0
 						}
-						for _, q := range queries {
-							qq := strings.Split(q, "=")
-							if len(qq) == 2 {
-								if _, ok := needs[qq[0]]; ok {
-									newQueries = append(newQueries, q)
-								}
-							}
-						}
-						u = fmt.Sprintf("%s://%s%s?%s",
-							theURL.Scheme, theURL.Host, theURL.Path, strings.Join(newQueries, "&"))
-					} else {
-						blacklist := []string{
-							"weekly.manong.io",
-							"github.com",
-						}
-						inBlacklist := false
-						for _, b := range blacklist {
-							if b == theURL.Host {
-								inBlacklist = true
-								break
-							}
-						}
-						if inBlacklist {
-							break
-						}
-						query := theURL.Query().Encode()
-						queries := strings.Split(query, "&")
-						var newQueries []string
-						for _, q := range queries {
-							qq := strings.Split(q, "=")
-							if len(qq) == 2 && qq[1] == "toutiao.io" {
-								continue
-							}
-							newQueries = append(newQueries, q)
-						}
-						if len(newQueries) == 0 {
-							u = fmt.Sprintf("%s://%s%s", theURL.Scheme, theURL.Host, theURL.Path)
-						} else {
-							u = fmt.Sprintf("%s://%s%s?%s",
-								theURL.Scheme, theURL.Host, theURL.Path, strings.Join(newQueries, "&"))
-						}
-					}
-
-					collectLink(u)
-					addLinkCount++
-					if addLinkCount > 50 {
-						i.PushToKindle()
-						time.Sleep(30 * time.Minute) // remove after all links are pushed to kindle
-						i.RemoveAllLinks()
-						addLinkCount = 0
 					}
 				}
 			}
