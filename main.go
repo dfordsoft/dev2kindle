@@ -18,7 +18,7 @@ import (
 var (
 	client             *http.Client
 	noRedirectClient   *http.Client
-	i                  *Instapaper
+	instapaper         *Instapaper
 	kindleMailbox      string
 	instapaperUsername string
 	instapaperPassword string
@@ -98,7 +98,7 @@ func collectLink(u string) {
 		return
 	}
 	// if not exists in sqlite, then add to instapaer and insert into sqlite
-	i.AddUrl(u)
+	instapaper.AddUrl(u)
 	insertIntoDatabase(u, db)
 }
 
@@ -193,20 +193,20 @@ func main() {
 		},
 	}
 
-	i = &Instapaper{
+	instapaper = &Instapaper{
 		Username: instapaperUsername,
 		Password: instapaperPassword,
 	}
-	i.Login()
-	i.GetFormKey()
+	instapaper.Login()
+	instapaper.GetFormKey()
 
 	if pushToKindle {
-		i.PushToKindle()
+		instapaper.PushToKindle()
 		return
 	}
 
 	if clearInstapaper {
-		i.RemoveAllLinks()
+		instapaper.RemoveAllLinks()
 		return
 	}
 
@@ -224,9 +224,9 @@ func main() {
 						collectLink(u)
 						addLinkCount++
 						if addLinkCount > 50 {
-							i.PushToKindle()
+							instapaper.PushToKindle()
 							time.Sleep(30 * time.Minute) // remove after all links are pushed to kindle
-							i.RemoveAllLinks()
+							instapaper.RemoveAllLinks()
 							addLinkCount = 0
 						}
 					}
@@ -240,18 +240,19 @@ func main() {
 		hourTicker.Stop()
 	}()
 	t := &Toutiao{}
+	i := &Iwgc{}
 	x := &Xitu{}
 	g := &Gank{}
 	c := &GeekCSDN{}
-	i := &Iwgc{}
 	s := &SegmentFault{}
 
-	t.Fetch(link)
-	x.Fetch(link)
-	g.Fetch(link)
-	c.Fetch(link)
-	i.Fetch(link)
-	s.Fetch(link)
+	fmt.Println("start fetch articles...")
+	go t.Fetch(link)
+	go i.Fetch(link)
+	go x.Fetch(link)
+	go g.Fetch(link)
+	go c.Fetch(link)
+	go s.Fetch(link)
 
 	if quitAfterPushed {
 		quit <- true
@@ -261,10 +262,10 @@ func main() {
 		select {
 		case <-hourTicker.C:
 			go t.Fetch(link)
+			go i.Fetch(link)
 			go x.Fetch(link)
 			go g.Fetch(link)
 			go c.Fetch(link)
-			go i.Fetch(link)
 			go s.Fetch(link)
 		}
 	}
