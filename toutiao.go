@@ -27,7 +27,13 @@ func (t *Toutiao) resolveFinalURL(u string) string {
 doResolve:
 	resp, err := http.Get(u)
 	if err != nil {
-		fmt.Printf("resolving url %s failed => %v\n", u, err.Error())
+		fmt.Printf("resolving url %s failed => %v\n", u, err)
+		// try to extract hyperlink from err.Error()
+		regex := regexp.MustCompile(`https?://[^:]+`)
+		list := regex.FindAllString(err.Error(), -1)
+		if len(list) > 0 {
+			return list[0]
+		}
 		if retry < 3 {
 			retry++
 			time.Sleep(3 * time.Second)
