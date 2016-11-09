@@ -50,7 +50,7 @@ func openDatabase() {
 	var err error
 	db, err = sql.Open("sqlite3", "dev2kindle.db")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("opening sqlite3 database failed", err)
 		return
 	}
 
@@ -58,7 +58,7 @@ func openDatabase() {
 		sqlStmt := `create table links (id integer not null primary key, url text, instapaper bool);`
 		_, err = db.Exec(sqlStmt)
 		if err != nil {
-			log.Printf("%q: %s\n", err, sqlStmt)
+			log.Println("creating table failed", err)
 		}
 	}
 }
@@ -67,7 +67,7 @@ func existsInDatabase(u string) bool {
 	// query from sqlite
 	rows, err := db.Query(fmt.Sprintf("select id from links where url = '%s'", u))
 	if err != nil {
-		log.Fatal(err)
+		log.Println("querying from sqlite to check existing failed", err)
 		return false
 	}
 	defer rows.Close()
@@ -76,7 +76,7 @@ func existsInDatabase(u string) bool {
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("reading rows to check existing failed", err)
 		return false
 	}
 
@@ -86,7 +86,7 @@ func existsInDatabase(u string) bool {
 func insertIntoDatabase(u string) bool {
 	_, err := db.Exec(fmt.Sprintf("insert into links(url, instapaper) values('%s', 'false')", u))
 	if err != nil {
-		log.Fatal(err)
+		log.Println("can't insert into database", err)
 		return false
 	}
 	return true
@@ -95,7 +95,7 @@ func insertIntoDatabase(u string) bool {
 func addLinksToInstapaper() {
 	rows, err := db.Query("select id,url from links where instapaper='false' order by id limit 50;")
 	if err != nil {
-		log.Fatal(err)
+		log.Println("querying from database failed", err)
 	}
 	defer rows.Close()
 	var ids []int
@@ -104,7 +104,7 @@ func addLinksToInstapaper() {
 		var u string
 		err = rows.Scan(&id, &u)
 		if err != nil {
-			log.Fatal(err)
+			log.Println("scanning rows failed", err)
 		}
 		ids = append(ids, id)
 		// add to instapaer
@@ -112,7 +112,7 @@ func addLinksToInstapaper() {
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("reading rows failed", err)
 	}
 	for _, id := range ids {
 		db.Exec("update links set instapaper='true' where id=?", id)
