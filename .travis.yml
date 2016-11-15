@@ -5,6 +5,6 @@ script:
 - go build .
 env:
   global:
-  - GITHUB_REPO: missdeer/ifconfig
+  - GITHUB_REPO: missdeer/dev2kindle
   - GIT_NAME: missdeer
-- GIT_EMAIL: missdeer@dfordsoft.com
+  - GIT_EMAIL: missdeer@dfordsoft.com
