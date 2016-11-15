@@ -42,7 +42,7 @@ doResolve:
 			return ""
 		}
 	}
-
+	defer resp.Body.Close()
 	finalURL := resp.Request.URL.String()
 	return finalURL
 }
