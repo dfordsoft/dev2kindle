@@ -1,0 +1,10 @@
+language: go
+go:
+- 1.7
+script:
+- go build .
+env:
+  global:
+  - GITHUB_REPO: missdeer/ifconfig
+  - GIT_NAME: missdeer
+- GIT_EMAIL: missdeer@dfordsoft.com
