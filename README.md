@@ -1,6 +1,8 @@
 # dev2kindle
 push articles for developers to kindle
 
+[![Build Status](https://secure.travis-ci.org/missdeer/dev2kindle.png)](https://travis-ci.org/missdeer/dev2kindle)
+
 ### Work flow
 1. collect articles link from toutiao.io && gold.xitu.io && segmentfault.com/news && geek.csdn.net && gank.io && iwgc.cn
 2. send links to Instapaper
