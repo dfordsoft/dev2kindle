@@ -1,10 +1,11 @@
 language: go
 go:
-- 1.7
+  - 1.7.3
+  - tip
 script:
-- go build .
+  - go build .
 env:
   global:
-  - GITHUB_REPO: missdeer/dev2kindle
-  - GIT_NAME: missdeer
-  - GIT_EMAIL: missdeer@dfordsoft.com
+    - GITHUB_REPO: missdeer/dev2kindle
+    - GIT_NAME: missdeer
+    - GIT_EMAIL: missdeer@dfordsoft.com
