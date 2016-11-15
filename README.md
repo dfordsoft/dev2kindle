@@ -1,7 +1,7 @@
 # dev2kindle
 push articles for developers to kindle
 
-[![Build Status](https://secure.travis-ci.org/missdeer/dev2kindle.png)](https://travis-ci.org/missdeer/dev2kindle)
+[![Build Status](https://secure.travis-ci.org/dfordsoft/dev2kindle.png)](https://travis-ci.org/dfordsoft/dev2kindle)
 
 ### Work flow
 1. collect articles link from toutiao.io && iwgc.cn
@@ -11,7 +11,7 @@ push articles for developers to kindle
 5. wait for some minutes and loop to step 1
 
 ### Build
-`go get github.com/missdeer/dev2kindle`
+`go get github.com/dfordsoft/dev2kindle`
 
 ### Usage
 `./dev2kindle -kindle xxx@kindle.com -username xxx@zzz.com -password xxxyyyzzz`
