@@ -16,13 +16,14 @@ import (
 )
 
 var (
-	client             *http.Client
-	noRedirectClient   *http.Client
-	instapaper         *Instapaper
-	kindleMailbox      string
-	instapaperUsername string
-	instapaperPassword string
-	db                 *sql.DB
+	client                *http.Client
+	noRedirectClient      *http.Client
+	instapaper            *Instapaper
+	kindleMailbox         string
+	instapaperUsername    string
+	instapaperPassword    string
+	db                    *sql.DB
+	linkCountInInstapaper int
 )
 
 func init() {
@@ -105,10 +106,15 @@ func addLinksToInstapaper() {
 		err = rows.Scan(&id, &u)
 		if err != nil {
 			log.Println("scanning rows failed", err)
+			continue
 		}
 		ids = append(ids, id)
 		// add to instapaer
 		instapaper.AddUrl(u)
+		linkCountInInstapaper++
+		if linkCountInInstapaper >= 50 {
+			break
+		}
 	}
 	err = rows.Err()
 	if err != nil {
@@ -185,12 +191,17 @@ func formatURL(theURL *url.URL) (u string) {
 }
 
 func pushLinksFromInstapaperToKindle() {
-	// remove old links
-	instapaper.RemoveAllLinks()
+	if linkCountInInstapaper >= 50 {
+		// remove old links
+		instapaper.RemoveAllLinks()
+		linkCountInInstapaper = 0
+	}
 	// add new links
 	addLinksToInstapaper()
-	// push to kindle
-	instapaper.PushToKindle()
+	if linkCountInInstapaper >= 50 {
+		// push to kindle
+		instapaper.PushToKindle()
+	}
 }
 
 func main() {
