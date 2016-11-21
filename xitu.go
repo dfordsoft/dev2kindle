@@ -17,7 +17,7 @@ const (
 type Xitu struct {
 }
 
-func (x *Xitu) resolveFinalURL(link chan string, u string) string {
+func (x *Xitu) resolveFinalURL(link chan string, u string) {
 	retry := 0
 doRequest:
 	req, err := http.NewRequest("GET", u, nil)
