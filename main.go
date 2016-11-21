@@ -159,6 +159,7 @@ func formatURL(theURL *url.URL) (u string) {
 		blacklist := []string{
 			"weekly.manong.io",
 			"github.com",
+			"passport.weibo.com",
 		}
 		inBlacklist := false
 		for _, b := range blacklist {
