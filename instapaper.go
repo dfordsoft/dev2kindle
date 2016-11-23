@@ -94,46 +94,7 @@ func (i *Instapaper) EditUrl(u string) {
 		"form_key":      {i.formKey},
 	}
 
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("POST", "https://www.instapaper.com/edit", strings.NewReader(postValues.Encode()))
-	if err != nil {
-		fmt.Println("Could not parse edit link request:", err)
-		return
-	}
-
-	req.SetBasicAuth(i.Username, i.Password)
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send edit link request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 201 {
-		fmt.Println("edit link request not 201", resp.StatusCode)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	_, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read edit link content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
+	httpPostBasicAuth("https://www.instapaper.com/edit", postValues.Encode(), i.Username, i.Password)
 }
 
 func (i *Instapaper) AddUrl(u string) {
@@ -141,46 +102,7 @@ func (i *Instapaper) AddUrl(u string) {
 		"url": {u},
 	}
 
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("POST", "https://www.instapaper.com/api/add", strings.NewReader(postValues.Encode()))
-	if err != nil {
-		fmt.Println("Could not parse add link request:", err)
-		return
-	}
-
-	req.SetBasicAuth(i.Username, i.Password)
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send add link request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 201 {
-		fmt.Println("add link request not 201", resp.StatusCode)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	_, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read add link content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
+	httpPostBasicAuth("https://www.instapaper.com/api/add", postValues.Encode(), i.Username, i.Password)
 }
 
 func (i *Instapaper) getIDs(u string) (res []int) {
@@ -211,57 +133,19 @@ func (i *Instapaper) getIDs(u string) (res []int) {
 }
 
 func (i *Instapaper) removeLink(id int) {
-doRequest:
-	req, err := http.NewRequest("POST", "https://www.instapaper.com/delete_articles", strings.NewReader(fmt.Sprintf("[%d]", id)))
-	if err != nil {
-		fmt.Println("Could not parse remove link request:", err)
-		return
+	headers := map[string]string{
+		"Referer":                   "http://www.instapaper.com/u",
+		"User-Agent":                "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0",
+		"Accept":                    "*/*",
+		"accept-language":           `en-US,en;q=0.5`,
+		"Upgrade-Insecure-Requests": "1",
+		"Connection":                "keep-alive",
+		"Cache-Control":             "max-age=0",
+		"Content-Type":              "application/x-www-form-urlencoded; charset=UTF-8",
+		"X-Requested-With":          "XMLHttpRequest",
+		"Cookie":                    i.cookie,
 	}
-
-	retry := 0
-
-	req.Header.Set("Referer", "http://www.instapaper.com/u")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0")
-	req.Header.Set("Accept", "*/*")
-	req.Header.Set("accept-language", `en-US,en;q=0.5`)
-	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Cache-Control", "max-age=0")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-	req.Header.Set("X-Requested-With", "XMLHttpRequest")
-	req.Header.Set("Cookie", i.cookie)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send remove link request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		fmt.Println("remove link request not 200")
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	_, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read remove link content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
+	httpPostCustomHeader("https://www.instapaper.com/delete_articles", fmt.Sprintf("[%d]", id), headers, false)
 }
 
 func (i *Instapaper) RemoveAllLinks() {
@@ -285,56 +169,19 @@ func (i *Instapaper) PushToKindle() {
 		"submit":   {"1"},
 	}
 
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("POST", "https://www.instapaper.com/user/kindle_send_now", strings.NewReader(postValues.Encode()))
-	if err != nil {
-		fmt.Println("Could not parse add link request:", err)
-		return
+	headers := map[string]string{
+		"Referer":                   "http://www.instapaper.com/u",
+		"User-Agent":                "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0",
+		"Accept":                    "*/*",
+		"accept-language":           `en-US,en;q=0.5`,
+		"Upgrade-Insecure-Requests": "1",
+		"Connection":                "keep-alive",
+		"Cache-Control":             "max-age=0",
+		"Content-Type":              "application/x-www-form-urlencoded; charset=UTF-8",
+		"X-Requested-With":          "XMLHttpRequest",
+		"Cookie":                    i.cookie,
 	}
-
-	req.Header.Set("Referer", "http://www.instapaper.com/u")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0")
-	req.Header.Set("Accept", "*/*")
-	req.Header.Set("accept-language", `en-US,en;q=0.5`)
-	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Cache-Control", "max-age=0")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-	req.Header.Set("X-Requested-With", "XMLHttpRequest")
-	req.Header.Set("Cookie", i.cookie)
-
-	resp, err := noRedirectClient.Do(req)
-	if err != nil {
-		fmt.Println("Could not send add link request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 302 {
-		fmt.Println("add link request not 302", resp.StatusCode)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	_, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read add link content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
+	httpPostCustomHeader("https://www.instapaper.com/user/kindle_send_now", postValues.Encode(), headers, true)
 }
 
 func (i *Instapaper) GetFormKey() {
