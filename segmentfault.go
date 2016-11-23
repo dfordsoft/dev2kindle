@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -43,7 +44,11 @@ func (s *SegmentFault) resolveFinalURL(link chan string, u string) {
 	regex := regexp.MustCompile(`data\-url="([^"]+)`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {
-		followURL := fmt.Sprintf("https://segmentfault.com%s", string(l[1]))
+		followURL := string(l[1])
+		if strings.Index(followURL, "https://segmentfault.com") != 0 {
+			followURL = fmt.Sprintf("https://segmentfault.com%s", string(l[1]))
+		}
+
 		url := s.extractFinalURL(followURL)
 		if len(url) > 0 {
 			link <- url
