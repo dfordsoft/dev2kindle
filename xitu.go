@@ -17,6 +17,9 @@ type Xitu struct {
 func (x *Xitu) resolveFinalURL(link chan string, u string) {
 	content := httpGet(u)
 
+	if len(content) == 0 {
+		return
+	}
 	regex := regexp.MustCompile(`<a href="([^"]+)" target="_blank" class="share\-link">`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {

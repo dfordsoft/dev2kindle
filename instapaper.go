@@ -184,52 +184,19 @@ doRequest:
 }
 
 func (i *Instapaper) getIDs(u string) (res []int) {
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("GET", u, nil)
-	if err != nil {
-		fmt.Println("Could not parse get IDs request:", err)
-		return nil
+	headers := map[string]string{
+		"Referer":                   "http://blog.instapaper.com/post/152600596211",
+		"User-Agent":                "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0",
+		"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+		"accept-language":           `en-US,en;q=0.5`,
+		"Upgrade-Insecure-Requests": "1",
+		"Connection":                "keep-alive",
+		"Cache-Control":             "max-age=0",
+		"Cookie":                    i.cookie,
 	}
-
-	req.Header.Set("Referer", "http://blog.instapaper.com/post/152600596211")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0")
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-	req.Header.Set("accept-language", `en-US,en;q=0.5`)
-	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Cache-Control", "max-age=0")
-	req.Header.Set("Cookie", i.cookie)
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send get IDs request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return nil
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		fmt.Println("get IDs request not 200")
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return nil
-	}
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read get IDs content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return nil
+	content := httpGetCustomHeader(u, headers)
+	if len(content) == 0 {
+		return res
 	}
 
 	r := regexp.MustCompile(`/delete/([0-9]+)`)
@@ -371,55 +338,21 @@ doRequest:
 }
 
 func (i *Instapaper) GetFormKey() {
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("GET", "https://www.instapaper.com/user", nil)
-	if err != nil {
-		fmt.Println("Could not parse get form_key request:", err)
-		return
+	headers := map[string]string{
+		"Referer":                   "https://www.instapaper.com/u",
+		"User-Agent":                "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0",
+		"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+		"accept-language":           `en-US,en;q=0.5`,
+		"Upgrade-Insecure-Requests": "1",
+		"Connection":                "keep-alive",
+		"Cache-Control":             "max-age=0",
+		"Cookie":                    i.cookie,
 	}
-
-	req.Header.Set("Referer", "https://www.instapaper.com/u")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0")
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-	req.Header.Set("accept-language", `en-US,en;q=0.5`)
-	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Cache-Control", "max-age=0")
-	req.Header.Set("Cookie", i.cookie)
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send get form_key request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		fmt.Println("get form_key request not 200")
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read get form_key content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
+	content := httpGetCustomHeader("https://www.instapaper.com/user", headers)
+	if len(content) == 0 {
 		return
 	}
 	r := regexp.MustCompile(`<input id="form_key" name="form_key" type="hidden" value="([0-9a-zA-Z]+)" />`)
-
 	ss := r.FindAllSubmatch(content, -1)
 	i.formKey = string(ss[0][1])
 }

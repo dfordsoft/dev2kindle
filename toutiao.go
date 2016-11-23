@@ -60,6 +60,9 @@ func (t *Toutiao) Fetch(link chan string) {
 func (t *Toutiao) fetchArticles(link chan string, u string) {
 	content := httpGet(u)
 
+	if len(content) == 0 {
+		return
+	}
 	regex := regexp.MustCompile(`/k/([0-9a-zA-Z]+)`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {

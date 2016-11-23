@@ -8,12 +8,21 @@ import (
 )
 
 func httpGet(u string) (content []byte) {
+	headers := make(map[string]string)
+	return httpGetCustomHeader(u, headers)
+}
+
+func httpGetCustomHeader(u string, headers map[string]string) (content []byte) {
 	retry := 0
 doRequest:
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
 		fmt.Println("Could not parse get request:", err, u)
 		return nil
+	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 
 	resp, err := client.Do(req)

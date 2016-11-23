@@ -36,6 +36,9 @@ func (c *GeekCSDN) Fetch(link chan string) {
 	u := `http://geek.csdn.net/service/news/get_news_list?` + getValues.Encode()
 	content := httpGet(u)
 
+	if len(content) == 0 {
+		return
+	}
 	var newsList NewsList
 	if err := json.Unmarshal(content, &newsList); err != nil {
 		fmt.Println("unmarshalling failed", err)

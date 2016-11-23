@@ -37,6 +37,9 @@ type Iwgc struct {
 func (i *Iwgc) resolveFinalURL(u string) (resolvedURL string) {
 	content := httpGet(u)
 
+	if len(content) == 0 {
+		return
+	}
 	regex := regexp.MustCompile(`http://mp.weixin.qq.com[^']+`)
 	list := regex.FindAll(content, -1)
 	if len(list) > 0 {
@@ -48,6 +51,9 @@ func (i *Iwgc) resolveFinalURL(u string) (resolvedURL string) {
 func (i *Iwgc) fetchArticles(link chan string, u string) {
 	content := httpGet(u)
 
+	if len(content) == 0 {
+		return
+	}
 	regex := regexp.MustCompile(`/link/([0-9]+)`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {

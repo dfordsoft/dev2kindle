@@ -18,6 +18,9 @@ type SegmentFault struct {
 func (s *SegmentFault) extractFinalURL(u string) string {
 	content := httpGet(u)
 
+	if len(content) == 0 {
+		return
+	}
 	regex := regexp.MustCompile(`window.location.href= "([^"]+)`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {
@@ -33,6 +36,9 @@ func (s *SegmentFault) extractFinalURL(u string) string {
 func (s *SegmentFault) resolveFinalURL(link chan string, u string) {
 	content := httpGet(u)
 
+	if len(content) == 0 {
+		return
+	}
 	regex := regexp.MustCompile(`data\url="([^"]+)`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {
