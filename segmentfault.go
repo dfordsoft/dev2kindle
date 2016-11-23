@@ -40,7 +40,7 @@ func (s *SegmentFault) resolveFinalURL(link chan string, u string) {
 	if len(content) == 0 {
 		return
 	}
-	regex := regexp.MustCompile(`data\url="([^"]+)`)
+	regex := regexp.MustCompile(`data\-url="([^"]+)`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {
 		followURL := fmt.Sprintf("https://segmentfault.com%s", string(l[1]))
