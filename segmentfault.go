@@ -130,6 +130,6 @@ func (s *SegmentFault) Fetch(link chan string) {
 		return
 	}
 	for _, item := range feed.Items {
-		x.resolveFinalURL(link, item.Link)
+		s.resolveFinalURL(link, item.Link)
 	}
 }
