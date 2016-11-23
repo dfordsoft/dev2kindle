@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/mmcdole/gofeed"
@@ -26,11 +25,7 @@ func (s *SegmentFault) extractFinalURL(u string) string {
 	regex := regexp.MustCompile(`window.location.href= "([^"]+)`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {
-		if url, e := strconv.Unquote(string(l[1])); e != nil {
-			log.Println("unquoting string failed", e)
-		} else {
-			return url
-		}
+		return strings.Replace(string(l[1]), `\/`, `/`, -1)
 	}
 	return ""
 }
