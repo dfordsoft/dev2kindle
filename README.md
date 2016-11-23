@@ -17,7 +17,7 @@ push articles for developers to kindle
 `./dev2kindle -kindle xxx@kindle.com -username xxx@zzz.com -password xxxyyyzzz`
 
 ### TODO
-- collect articles from gank.io && RSS/Atom
+- collect articles from common RSS/Atom
 - article source/black list configurable
 - support save links to Pocket service
 - use own readability implementation
