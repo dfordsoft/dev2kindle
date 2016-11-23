@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"time"
 )
 
@@ -16,6 +17,16 @@ type NewsList struct {
 type GeekCSDN struct {
 }
 
+func (c *GeekCSDN) extractURLs(link chan string, html string) {
+	regex := regexp.MustCompile(`<a href="([^"]+)" class="title" target="_blank">`)
+	list := regex.FindAllStringSubmatch(html, -1)
+	for _, l := range list {
+		if len(l[1]) > 0 {
+			link <- l[1]
+		}
+	}
+}
+
 func (c *GeekCSDN) Fetch(link chan string) {
 	retry := 0
 doRequest:
@@ -24,7 +35,7 @@ doRequest:
 		"from":     {"-"},
 		"size":     {"20"},
 		"type":     {"HackCount"},
-		"_":        {time.Now().Unix()},
+		"_":        {fmt.Sprintf("%d", time.Now().Unix())},
 	}
 	req, err := http.NewRequest("GET", `http://geek.csdn.net/service/news/get_news_list?`+getValues.Encode(), nil)
 	if err != nil {
@@ -69,5 +80,5 @@ doRequest:
 		return
 	}
 
-	fmt.Println("geek csdn:", newsList.HTML)
+	c.extractURLs(link, newsList.HTML)
 }
