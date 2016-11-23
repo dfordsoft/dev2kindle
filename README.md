@@ -18,7 +18,6 @@ push articles for developers to kindle
 
 ### TODO
 - collect articles from common RSS/Atom
-- article source/black list configurable
 - support save links to Pocket service
 - use own readability implementation
 - generate .mobi file and send it to kindle mailbox by dev2kindle

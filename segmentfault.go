@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 
@@ -25,7 +26,7 @@ func (s *SegmentFault) extractFinalURL(u string) string {
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {
 		if url, e := strconv.Unquote(string(l[1])); e != nil {
-			fmt.Println("unquoting string failed", e)
+			log.Println("unquoting string failed", e)
 		} else {
 			return url
 		}
@@ -55,7 +56,7 @@ func (s *SegmentFault) Fetch(link chan string) {
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL(sfFeedURL)
 	if err != nil {
-		fmt.Println("parsing feed URL failed", err)
+		log.Println("parsing feed URL failed", err)
 		return
 	}
 	for _, item := range feed.Items {

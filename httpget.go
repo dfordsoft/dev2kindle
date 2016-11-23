@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
@@ -17,7 +17,7 @@ func httpGetCustomHeader(u string, headers map[string]string) (content []byte) {
 doRequest:
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
-		fmt.Println("Could not parse get request:", err, u)
+		log.Println("Could not parse get request:", err, u)
 		return nil
 	}
 
@@ -27,7 +27,7 @@ doRequest:
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Could not send get request:", err, u)
+		log.Println("Could not send get request:", err, u)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)
@@ -38,7 +38,7 @@ doRequest:
 
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		fmt.Println("get request not 200", u)
+		log.Println("get request not 200", u)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)
@@ -48,7 +48,7 @@ doRequest:
 	}
 	content, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("cannot read get content", err, u)
+		log.Println("cannot read get content", err, u)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)

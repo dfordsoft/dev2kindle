@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -29,7 +30,7 @@ func (i *Instapaper) Login() {
 doRequest:
 	req, err := http.NewRequest("POST", "https://www.instapaper.com/user/login", strings.NewReader(postValues.Encode()))
 	if err != nil {
-		fmt.Println("Could not parse login request:", err)
+		log.Println("Could not parse login request:", err)
 		return
 	}
 
@@ -44,7 +45,7 @@ doRequest:
 
 	resp, err := noRedirectClient.Do(req)
 	if err != nil {
-		fmt.Println("Could not send login request:", err)
+		log.Println("Could not send login request:", err)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)
@@ -55,7 +56,7 @@ doRequest:
 
 	defer resp.Body.Close()
 	if resp.StatusCode != 302 {
-		fmt.Println("login request not 302:", resp.StatusCode)
+		log.Println("login request not 302:", resp.StatusCode)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)
@@ -65,7 +66,7 @@ doRequest:
 	}
 	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("cannot read login content", err)
+		log.Println("cannot read login content", err)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)

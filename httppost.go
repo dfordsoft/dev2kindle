@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +13,7 @@ func httpPostBasicAuth(u string, data string, username string, password string) 
 doRequest:
 	req, err := http.NewRequest("POST", u, strings.NewReader(data))
 	if err != nil {
-		fmt.Println("Could not parse post request:", err)
+		log.Println("Could not parse post request:", err)
 		return nil
 	}
 
@@ -22,7 +22,7 @@ doRequest:
 	var resp *http.Response
 	resp, err = client.Do(req)
 	if err != nil {
-		fmt.Println("Could not send post request:", err)
+		log.Println("Could not send post request:", err)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)
@@ -33,7 +33,7 @@ doRequest:
 
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		fmt.Println("post request not 200:", resp.StatusCode)
+		log.Println("post request not 200:", resp.StatusCode)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)
@@ -43,7 +43,7 @@ doRequest:
 	}
 	content, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("cannot read post content", err)
+		log.Println("cannot read post content", err)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)
@@ -59,7 +59,7 @@ func httpPostCustomHeader(u string, data string, headers map[string]string, noRe
 doRequest:
 	req, err := http.NewRequest("POST", u, strings.NewReader(data))
 	if err != nil {
-		fmt.Println("Could not parse post request:", err)
+		log.Println("Could not parse post request:", err)
 		return nil
 	}
 
@@ -74,7 +74,7 @@ doRequest:
 		resp, err = client.Do(req)
 	}
 	if err != nil {
-		fmt.Println("Could not send post request:", err)
+		log.Println("Could not send post request:", err)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)
@@ -86,7 +86,7 @@ doRequest:
 	defer resp.Body.Close()
 	if noRedirect {
 		if resp.StatusCode < 300 || resp.StatusCode >= 400 {
-			fmt.Println("post request not 302:", resp.StatusCode)
+			log.Println("post request not 302:", resp.StatusCode)
 			retry++
 			if retry < 3 {
 				time.Sleep(3 * time.Second)
@@ -96,7 +96,7 @@ doRequest:
 		}
 	} else {
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			fmt.Println("post request not 200:", resp.StatusCode)
+			log.Println("post request not 200:", resp.StatusCode)
 			retry++
 			if retry < 3 {
 				time.Sleep(3 * time.Second)
@@ -107,7 +107,7 @@ doRequest:
 	}
 	content, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("cannot read post content", err)
+		log.Println("cannot read post content", err)
 		retry++
 		if retry < 3 {
 			time.Sleep(3 * time.Second)

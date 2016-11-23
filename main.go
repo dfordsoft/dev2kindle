@@ -2,9 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -13,7 +14,21 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	flag "github.com/ogier/pflag"
 )
+
+type Config struct {
+	Kindle              string `json:"kindle"`
+	Username            string `json:"username"`
+	Password            string `json:"password"`
+	SegmentFaultEnabled bool   `json:"segmentfault_enabled"`
+	GeekCSDNEnabled     bool   `json:"geekcsdn_enabled"`
+	GoldXituEnabled     bool   `json:"goldxitu_enabled"`
+	ToutiaoIOEnabled    bool   `json:"toutiaoio_enabled"`
+	IwgcEnabled         bool   `json:"iwgc_enabled"`
+	ToutiaoSubjects     []int  `json:"toutiaoio_subjects"`
+	IwgcLists           []int  `json:"iwgc_lists"`
+}
 
 var (
 	client                *http.Client
@@ -24,10 +39,8 @@ var (
 	instapaperPassword    string
 	db                    *sql.DB
 	linkCountInInstapaper int
+	config                Config
 )
-
-func init() {
-}
 
 func isFileExists(path string) (bool, error) {
 	stat, err := os.Stat(path)
@@ -209,6 +222,8 @@ func main() {
 	quitAfterPushed := false
 	clearInstapaper := false
 	pushToKindle := false
+	configPath := "config.json"
+	flag.StringVar(&configPath, "config", "config.json", "specify the config file path")
 	flag.StringVar(&kindleMailbox, "kindle", "", "kindle mailbox")
 	flag.StringVar(&instapaperUsername, "username", "", "instapaper username")
 	flag.StringVar(&instapaperPassword, "password", "", "instapaper password")
@@ -217,18 +232,45 @@ func main() {
 	flag.BoolVar(&pushToKindle, "pushToKindle", false, "push articles in instapaer to kindle now")
 	flag.Parse()
 
+	fh, err := os.Open(configPath)
+	if err != nil {
+		log.Fatal("opening ", configPath, " failed")
+		return
+	}
+	defer fh.Close()
+	configcontent, err := ioutil.ReadAll(fh)
+	if err != nil {
+		log.Fatal("reading ", configPath, " failed")
+		return
+	}
+
+	if err = json.Unmarshal(configcontent, &config); err != nil {
+		log.Fatal("parsing ", configPath, " failed")
+		return
+	}
+
+	if len(kindleMailbox) == 0 && len(config.Kindle) != 0 {
+		kindleMailbox = config.Kindle
+	}
+	if len(instapaperUsername) == 0 && len(config.Username) != 0 {
+		instapaperUsername = config.Username
+	}
+	if len(instapaperPassword) == 0 && len(config.Password) != 0 {
+		instapaperPassword = config.Password
+	}
+
 	if len(kindleMailbox) == 0 || len(instapaperPassword) == 0 || len(instapaperUsername) == 0 {
-		fmt.Println("missing kindle mailbox or instapaer username/password")
+		log.Println("missing kindle mailbox or instapaer username/password")
 		flag.Usage()
 		return
 	}
 
-	fmt.Println("kindle mailbox:", kindleMailbox)
-	fmt.Println("Instapaper username:", instapaperUsername)
-	fmt.Println("Instapaper password:", instapaperPassword)
-	fmt.Println("Quit after pushed:", quitAfterPushed)
-	fmt.Println("Clear Instapaper articles:", clearInstapaper)
-	fmt.Println("Push To Kindle:", pushToKindle)
+	log.Println("kindle mailbox:", kindleMailbox)
+	log.Println("Instapaper username:", instapaperUsername)
+	log.Println("Instapaper password:", instapaperPassword)
+	log.Println("Quit after pushed:", quitAfterPushed)
+	log.Println("Clear Instapaper articles:", clearInstapaper)
+	log.Println("Push To Kindle:", pushToKindle)
 
 	client = &http.Client{
 		Timeout: 30 * time.Second,
@@ -281,19 +323,34 @@ func main() {
 	defer func() {
 		hourTicker.Stop()
 	}()
-	t := &Toutiao{}
-	i := &Iwgc{}
-	x := &Xitu{}
-	c := &GeekCSDN{}
-	s := &SegmentFault{}
 
-	fmt.Println("start fetch articles...")
+	log.Println("start fetch articles...")
 	go pushLinksFromInstapaperToKindle()
-	go t.Fetch(link)
-	go i.Fetch(link)
-	go x.Fetch(link)
-	go c.Fetch(link)
-	go s.Fetch(link)
+	var t *Toutiao
+	if config.ToutiaoIOEnabled {
+		t = &Toutiao{}
+		go t.Fetch(link)
+	}
+	var i *Iwgc
+	if config.IwgcEnabled {
+		i = &Iwgc{}
+		go i.Fetch(link)
+	}
+	var x *Xitu
+	if config.GoldXituEnabled {
+		x = &Xitu{}
+		go x.Fetch(link)
+	}
+	var c *GeekCSDN
+	if config.GeekCSDNEnabled {
+		c = &GeekCSDN{}
+		go c.Fetch(link)
+	}
+	var s *SegmentFault
+	if config.SegmentFaultEnabled {
+		s = &SegmentFault{}
+		go s.Fetch(link)
+	}
 
 	if quitAfterPushed {
 		quit <- true
@@ -304,11 +361,21 @@ func main() {
 		case <-halfAnHourTicker.C:
 			pushLinksFromInstapaperToKindle()
 		case <-hourTicker.C:
-			go t.Fetch(link)
-			go i.Fetch(link)
-			go x.Fetch(link)
-			go c.Fetch(link)
-			go s.Fetch(link)
+			if config.ToutiaoIOEnabled {
+				go t.Fetch(link)
+			}
+			if config.IwgcEnabled {
+				go i.Fetch(link)
+			}
+			if config.GoldXituEnabled {
+				go x.Fetch(link)
+			}
+			if config.GeekCSDNEnabled {
+				go c.Fetch(link)
+			}
+			if config.SegmentFaultEnabled {
+				go s.Fetch(link)
+			}
 		}
 	}
 }

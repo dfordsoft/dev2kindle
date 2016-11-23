@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/url"
 	"regexp"
 	"time"
@@ -41,7 +42,7 @@ func (c *GeekCSDN) Fetch(link chan string) {
 	}
 	var newsList NewsList
 	if err := json.Unmarshal(content, &newsList); err != nil {
-		fmt.Println("unmarshalling failed", err)
+		log.Println("unmarshalling failed", err)
 		return
 	}
 

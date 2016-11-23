@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/mmcdole/gofeed"
@@ -33,7 +33,7 @@ func (x *Xitu) Fetch(link chan string) {
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL(xituFeedURL)
 	if err != nil {
-		fmt.Println("parsing feed URL failed", err)
+		log.Println("parsing feed URL failed", err)
 		return
 	}
 	for _, item := range feed.Items {
