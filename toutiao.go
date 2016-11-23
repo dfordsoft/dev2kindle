@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"time"
@@ -59,44 +58,7 @@ func (t *Toutiao) Fetch(link chan string) {
 }
 
 func (t *Toutiao) fetchArticles(link chan string, u string) {
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("GET", u, nil)
-	if err != nil {
-		fmt.Println("Could not parse get page list request:", err)
-		return
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send get page list request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		fmt.Println("get page list request not 200")
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read get page list content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-	}
+	content := httpGet(u)
 
 	regex := regexp.MustCompile(`/k/([0-9a-zA-Z]+)`)
 	list := regex.FindAllSubmatch(content, -1)

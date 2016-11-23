@@ -2,10 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"regexp"
-	"time"
 )
 
 var (
@@ -38,44 +35,7 @@ type Iwgc struct {
 }
 
 func (i *Iwgc) resolveFinalURL(u string) (resolvedURL string) {
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("GET", u, nil)
-	if err != nil {
-		fmt.Println("Could not parse resolve final URL request:", err)
-		return
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send resolve final URL request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		fmt.Println("resolve final URL request not 200")
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read resolve final URL content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-	}
+	content := httpGet(u)
 
 	regex := regexp.MustCompile(`http://mp.weixin.qq.com[^']+`)
 	list := regex.FindAll(content, -1)
@@ -86,44 +46,7 @@ doRequest:
 }
 
 func (i *Iwgc) fetchArticles(link chan string, u string) {
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("GET", u, nil)
-	if err != nil {
-		fmt.Println("Could not parse get page list request:", err)
-		return
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send get page list request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		fmt.Println("get page list request not 200")
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read get page list content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-	}
+	content := httpGet(u)
 
 	regex := regexp.MustCompile(`/link/([0-9]+)`)
 	list := regex.FindAllSubmatch(content, -1)

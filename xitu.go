@@ -2,10 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"regexp"
-	"time"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -18,44 +15,7 @@ type Xitu struct {
 }
 
 func (x *Xitu) resolveFinalURL(link chan string, u string) {
-	retry := 0
-doRequest:
-	req, err := http.NewRequest("GET", u, nil)
-	if err != nil {
-		fmt.Println("Could not parse get article content request:", err)
-		return
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Could not send get article content request:", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		fmt.Println("get article content request not 200")
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-		return
-	}
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("cannot read get article content content", err)
-		retry++
-		if retry < 3 {
-			time.Sleep(3 * time.Second)
-			goto doRequest
-		}
-	}
+	content := httpGet(u)
 
 	regex := regexp.MustCompile(`<a href="([^"]+)" target="_blank" class="share\-link">`)
 	list := regex.FindAllSubmatch(content, -1)
