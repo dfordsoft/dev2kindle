@@ -14,7 +14,8 @@ push articles for developers to kindle
 `go get github.com/dfordsoft/dev2kindle`
 
 ### Usage
-`./dev2kindle -kindle xxx@kindle.com -username xxx@zzz.com -password xxxyyyzzz`
+1. modify config.json
+2. run command: `./dev2kindle --config=config.json`
 
 ### TODO
 - collect articles from common RSS/Atom
