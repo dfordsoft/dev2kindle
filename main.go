@@ -284,7 +284,6 @@ func main() {
 	t := &Toutiao{}
 	i := &Iwgc{}
 	x := &Xitu{}
-	g := &Gank{}
 	c := &GeekCSDN{}
 	s := &SegmentFault{}
 
@@ -293,7 +292,6 @@ func main() {
 	go t.Fetch(link)
 	go i.Fetch(link)
 	go x.Fetch(link)
-	go g.Fetch(link)
 	go c.Fetch(link)
 	go s.Fetch(link)
 
@@ -309,7 +307,6 @@ func main() {
 			go t.Fetch(link)
 			go i.Fetch(link)
 			go x.Fetch(link)
-			go g.Fetch(link)
 			go c.Fetch(link)
 			go s.Fetch(link)
 		}
