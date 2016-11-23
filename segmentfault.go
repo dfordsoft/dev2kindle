@@ -24,7 +24,7 @@ doRequest:
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
 		fmt.Println("Could not parse get final URL request:", err)
-		return
+		return ""
 	}
 
 	resp, err := client.Do(req)
@@ -35,7 +35,7 @@ doRequest:
 			time.Sleep(3 * time.Second)
 			goto doRequest
 		}
-		return
+		return ""
 	}
 
 	defer resp.Body.Close()
@@ -46,7 +46,7 @@ doRequest:
 			time.Sleep(3 * time.Second)
 			goto doRequest
 		}
-		return
+		return ""
 	}
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -61,7 +61,11 @@ doRequest:
 	regex := regexp.MustCompile(`window.location.href= "([^"]+)`)
 	list := regex.FindAllSubmatch(content, -1)
 	for _, l := range list {
-		return strconv.Unquote(l[1])
+		if url, e := strconv.Unquote(string(l[1])); e != nil {
+			fmt.Println("unquoting string failed", e)
+		} else {
+			return url
+		}
 	}
 	return ""
 }
