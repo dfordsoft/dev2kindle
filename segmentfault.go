@@ -19,7 +19,7 @@ func (s *SegmentFault) extractFinalURL(u string) string {
 	content := httpGet(u)
 
 	if len(content) == 0 {
-		return
+		return ""
 	}
 	regex := regexp.MustCompile(`window.location.href= "([^"]+)`)
 	list := regex.FindAllSubmatch(content, -1)
