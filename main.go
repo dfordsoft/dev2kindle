@@ -18,16 +18,18 @@ import (
 )
 
 type Config struct {
-	Kindle              string `json:"kindle"`
-	Username            string `json:"username"`
-	Password            string `json:"password"`
-	SegmentFaultEnabled bool   `json:"segmentfault_enabled"`
-	GeekCSDNEnabled     bool   `json:"geekcsdn_enabled"`
-	GoldXituEnabled     bool   `json:"goldxitu_enabled"`
-	ToutiaoIOEnabled    bool   `json:"toutiaoio_enabled"`
-	IwgcEnabled         bool   `json:"iwgc_enabled"`
-	ToutiaoSubjects     []int  `json:"toutiaoio_subjects"`
-	IwgcLists           []int  `json:"iwgc_lists"`
+	Kindle              string   `json:"kindle"`
+	Username            string   `json:"username"`
+	Password            string   `json:"password"`
+	SegmentFaultEnabled bool     `json:"segmentfault_enabled"`
+	GeekCSDNEnabled     bool     `json:"geekcsdn_enabled"`
+	GoldXituEnabled     bool     `json:"goldxitu_enabled"`
+	ToutiaoEnabled      bool     `json:"toutiaoio_enabled"`
+	IwgcEnabled         bool     `json:"iwgc_enabled"`
+	RSSEnabled          bool     `json:"rss_enabled"`
+	ToutiaoSubjects     []int    `json:"toutiaoio_subjects"`
+	IwgcLists           []int    `json:"iwgc_lists"`
+	RSSFeeds            []string `json:"rss_feeds"`
 }
 
 var (
@@ -264,6 +266,15 @@ func main() {
 		flag.Usage()
 		return
 	}
+	if len(config.IwgcLists) == 0 {
+		config.IwgcEnabled = false
+	}
+	if len(config.ToutiaoSubjects) == 0 {
+		config.ToutiaoEnabled = false
+	}
+	if len(config.RSSFeeds) == 0 {
+		config.RSSEnabled = false
+	}
 
 	log.Println("kindle mailbox:", kindleMailbox)
 	log.Println("Instapaper username:", instapaperUsername)
@@ -327,7 +338,7 @@ func main() {
 	log.Println("start fetch articles...")
 	go pushLinksFromInstapaperToKindle()
 	var t *Toutiao
-	if config.ToutiaoIOEnabled {
+	if config.ToutiaoEnabled {
 		t = &Toutiao{}
 		go t.Fetch(link)
 	}
@@ -351,6 +362,11 @@ func main() {
 		s = &SegmentFault{}
 		go s.Fetch(link)
 	}
+	var r *RSSFeed
+	if config.RSSEnabled {
+		r = &RSSFeed{}
+		go r.Fetch(link)
+	}
 
 	if quitAfterPushed {
 		quit <- true
@@ -361,7 +377,7 @@ func main() {
 		case <-halfAnHourTicker.C:
 			pushLinksFromInstapaperToKindle()
 		case <-hourTicker.C:
-			if config.ToutiaoIOEnabled {
+			if config.ToutiaoEnabled {
 				go t.Fetch(link)
 			}
 			if config.IwgcEnabled {
@@ -375,6 +391,9 @@ func main() {
 			}
 			if config.SegmentFaultEnabled {
 				go s.Fetch(link)
+			}
+			if config.RSSEnabled {
+				go r.Fetch(link)
 			}
 		}
 	}

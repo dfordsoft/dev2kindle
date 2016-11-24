@@ -7,6 +7,7 @@
     "goldxitu_enabled": true,
     "toutiaoio_enabled": true,
     "iwgc_enabled": true,
+	"rss_enabled": true,
     "toutiaoio_subjects": [
         4755,   
 		1996,   
@@ -37,5 +38,9 @@
 		1261,  
 		18,    
 		5213 
-    ]    
+    ],
+	"rss_feeds": [
+		"http://coolshell.cn/feed",
+		"http://blog.codingnow.com/atom.xml"
+	]    
 }

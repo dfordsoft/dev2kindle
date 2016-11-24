@@ -18,8 +18,8 @@ push articles for developers to kindle
 2. run command: `./dev2kindle --config=config.json`
 
 ### TODO
-- collect articles from common RSS/Atom
 - support save links to Pocket service
 - use own readability implementation
 - generate .mobi file and send it to kindle mailbox by dev2kindle
 - remove iwgc.cn dependency, crawl weixin mp articles by another reliable service
+- read articles by web browser directly 
