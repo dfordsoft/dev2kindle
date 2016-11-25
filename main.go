@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -372,6 +373,20 @@ func main() {
 		quit <- true
 		return
 	}
+
+	go func() {
+		sigchan := make(chan os.Signal, 10)
+		signal.Notify(sigchan, os.Interrupt)
+		<-sigchan
+		log.Println("Program killed !")
+
+		if db != nil {
+			db.Close()
+		}
+
+		os.Exit(0)
+	}()
+
 	for {
 		select {
 		case <-halfAnHourTicker.C:
