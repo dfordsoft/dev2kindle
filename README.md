@@ -3,6 +3,8 @@ push articles for developers to kindle
 
 [![Build Status](https://secure.travis-ci.org/dfordsoft/dev2kindle.png)](https://travis-ci.org/dfordsoft/dev2kindle)
 
+[![wercker status](https://app.wercker.com/status/31fae381bdb878554582296f8c6f14b1/m/master "wercker status")](https://app.wercker.com/project/byKey/31fae381bdb878554582296f8c6f14b1)
+
 ### Work flow
 1. collect articles link from segmentfault.com/news && geek.csdn.net && gold.xitu.io && toutiao.io && iwgc.cn
 2. send links to Instapaper
