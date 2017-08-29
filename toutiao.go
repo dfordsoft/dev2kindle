@@ -42,7 +42,7 @@ func (t *Toutiao) Fetch(link chan string) {
 	t.fetchArticles(link, u)
 
 	for _, id := range config.ToutiaoSubjects {
-		u := fmt.Sprintf("https://toutiao.io/subjects/%d", id)
+		u := fmt.Sprintf("https://toutiao.io/subjects/%d?f=new", id)
 		t.fetchArticles(link, u)
 	}
 }
