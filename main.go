@@ -26,10 +26,8 @@ type Config struct {
 	GeekCSDNEnabled     bool     `json:"geekcsdn_enabled"`
 	GoldXituEnabled     bool     `json:"goldxitu_enabled"`
 	ToutiaoEnabled      bool     `json:"toutiaoio_enabled"`
-	IwgcEnabled         bool     `json:"iwgc_enabled"`
 	RSSEnabled          bool     `json:"rss_enabled"`
 	ToutiaoSubjects     []int    `json:"toutiaoio_subjects"`
-	IwgcLists           []int    `json:"iwgc_lists"`
 	RSSFeeds            []string `json:"rss_feeds"`
 }
 
@@ -267,9 +265,6 @@ func main() {
 		flag.Usage()
 		return
 	}
-	if len(config.IwgcLists) == 0 {
-		config.IwgcEnabled = false
-	}
 	if len(config.ToutiaoSubjects) == 0 {
 		config.ToutiaoEnabled = false
 	}
@@ -343,11 +338,6 @@ func main() {
 		t = &Toutiao{}
 		go t.Fetch(link)
 	}
-	var i *Iwgc
-	if config.IwgcEnabled {
-		i = &Iwgc{}
-		go i.Fetch(link)
-	}
 	var x *Xitu
 	if config.GoldXituEnabled {
 		x = &Xitu{}
@@ -394,9 +384,6 @@ func main() {
 		case <-hourTicker.C:
 			if config.ToutiaoEnabled {
 				go t.Fetch(link)
-			}
-			if config.IwgcEnabled {
-				go i.Fetch(link)
 			}
 			if config.GoldXituEnabled {
 				go x.Fetch(link)

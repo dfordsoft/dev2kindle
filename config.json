@@ -6,7 +6,6 @@
     "geekcsdn_enabled": true,
     "goldxitu_enabled": true,
     "toutiaoio_enabled": true,
-    "iwgc_enabled": true,
 	"rss_enabled": true,
     "toutiaoio_subjects": [
         4755,   
@@ -15,29 +14,6 @@
 		101482, 
 		50375,  
 		14908  
-    ],
-    "iwgc_lists": [
-		4868,  
-		2317,  
-		1929,  
-		1922,  
-		4956,  
-		169,   
-		488,   
-		5187,  
-		6737,  
-		6990,  
-		1199,  
-		5054,  
-		3567,  
-		405,   
-		790,   
-		6128,  
-		10712, 
-		8947,  
-		1261,  
-		18,    
-		5213 
     ],
 	"rss_feeds": [
 		"http://coolshell.cn/feed",
