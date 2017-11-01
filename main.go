@@ -19,16 +19,20 @@ import (
 )
 
 type Config struct {
-	Kindle              string   `json:"kindle"`
-	Username            string   `json:"username"`
-	Password            string   `json:"password"`
-	SegmentFaultEnabled bool     `json:"segmentfault_enabled"`
-	GeekCSDNEnabled     bool     `json:"geekcsdn_enabled"`
-	GoldXituEnabled     bool     `json:"goldxitu_enabled"`
-	ToutiaoEnabled      bool     `json:"toutiaoio_enabled"`
-	RSSEnabled          bool     `json:"rss_enabled"`
-	ToutiaoSubjects     []int    `json:"toutiaoio_subjects"`
-	RSSFeeds            []string `json:"rss_feeds"`
+	Kindle               string   `json:"kindle"`
+	Username             string   `json:"username"`
+	Password             string   `json:"password"`
+	SegmentFaultEnabled  bool     `json:"segmentfault_enabled"`
+	GeekCSDNEnabled      bool     `json:"geekcsdn_enabled"`
+	GoldXituEnabled      bool     `json:"goldxitu_enabled"`
+	ToutiaoEnabled       bool     `json:"toutiaoio_enabled"`
+	JinTianKanShaEnabled bool     `json:"jintiankansha_enabled"`
+	WeixinYiduEnabled    bool     `json:"weixinyidu_enabled"`
+	RSSEnabled           bool     `json:"rss_enabled"`
+	ToutiaoSubjects      []int    `json:"toutiaoio_subjects"`
+	JinTianKanShaColumns []string `json:"jintiankansha_columns"`
+	WeixinYiduIDs        []string `json:"weixinyidu_ids"`
+	RSSFeeds             []string `json:"rss_feeds"`
 }
 
 var (
@@ -271,6 +275,12 @@ func main() {
 	if len(config.RSSFeeds) == 0 {
 		config.RSSEnabled = false
 	}
+	if len(config.JinTianKanShaColumns) == 0 {
+		config.JinTianKanShaEnabled = false
+	}
+	if len(config.WeixinYiduIDs) == 0 {
+		config.WeixinYiduEnabled = false
+	}
 
 	log.Println("kindle mailbox:", kindleMailbox)
 	log.Println("Instapaper username:", instapaperUsername)
@@ -358,6 +368,16 @@ func main() {
 		r = &RSSFeed{}
 		go r.Fetch(link)
 	}
+	var j *JinTianKanSha
+	if config.JinTianKanShaEnabled {
+		j = &JinTianKanSha{}
+		go j.Fetch(link)
+	}
+	var w *WeixinYidu
+	if config.WeixinYiduEnabled {
+		w = &WeixinYidu{}
+		go w.Fetch(link)
+	}
 
 	if quitAfterPushed {
 		quit <- true
@@ -396,6 +416,12 @@ func main() {
 			}
 			if config.RSSEnabled {
 				go r.Fetch(link)
+			}
+			if config.WeixinYiduEnabled {
+				go w.Fetch(link)
+			}
+			if config.JinTianKanShaEnabled {
+				go j.Fetch(link)
 			}
 		}
 	}

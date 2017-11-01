@@ -6,6 +6,8 @@
     "geekcsdn_enabled": true,
     "goldxitu_enabled": true,
     "toutiaoio_enabled": true,
+    "jintiankansha_enabled": true,
+    "weinxinyidu_enabled": true,
 	"rss_enabled": true,
     "toutiaoio_subjects": [
         4755,   
@@ -14,6 +16,33 @@
 		101482, 
 		50375,  
 		14908  
+    ],
+    "weixinyidu_ids" : [
+
+    ],
+    "jintiankansha_columns": [
+        "t4ZM5EyKc9",
+        "rjDs73XjqY",
+        "SaY55L9Ftq",
+        "C1K9TLgkIo",
+        "YT7f6O6cqi",
+        "4s8TDnAbYP",
+        "3OU1qbydv8",
+        "RxmuqJqXaq",
+        "ej6si4gPKS",
+        "hh9itHlG3r",
+        "PAX2chrWk1",
+        "m2Jk5LVoX4",
+        "srpWkjupHo",
+        "nwClF5ZmDJ",
+        "bfLwRlBMwK",
+        "SUKdkCF758",
+        "7VyKjCzmtI",
+        "GpezF4u3C6",
+        "TnTjmo2Pmq",
+        "7fuTZbV56a",
+        "hCnZafSsm4",
+        "YiNPHyhLBt"        
     ],
 	"rss_feeds": [
 		"http://coolshell.cn/feed",
