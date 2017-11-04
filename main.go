@@ -165,21 +165,6 @@ func main() {
 		kindleMailbox = config.Data.Kindle
 	}
 
-	if len(config.Data.ToutiaoSubjects) == 0 {
-		config.Data.ToutiaoEnabled = false
-	}
-	if len(config.Data.RSSFeeds) == 0 {
-		config.Data.RSSEnabled = false
-	}
-	if len(config.Data.JinTianKanShaColumns) == 0 {
-		config.Data.JinTianKanShaEnabled = false
-	}
-	if len(config.Data.WeixinYiduIDs) == 0 {
-		config.Data.WeixinYiduEnabled = false
-	}
-
-	log.Println("kindle mailbox:", kindleMailbox)
-
 	openDatabase()
 
 	link := make(chan string, 10)
