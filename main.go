@@ -20,8 +20,8 @@ import (
 
 type Config struct {
 	Kindle               string   `json:"kindle"`
-	Username             string   `json:"username"`
-	Password             string   `json:"password"`
+	Username             string   `json:"instapaper_username"`
+	Password             string   `json:"instapaper_password"`
 	SegmentFaultEnabled  bool     `json:"segmentfault_enabled"`
 	GeekCSDNEnabled      bool     `json:"geekcsdn_enabled"`
 	GoldXituEnabled      bool     `json:"goldxitu_enabled"`
