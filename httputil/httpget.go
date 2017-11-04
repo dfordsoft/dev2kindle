@@ -1,4 +1,4 @@
-package main
+package httputil
 
 import (
 	"io/ioutil"
@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-func httpGet(u string) (content []byte) {
+func HttpGet(u string) (content []byte) {
 	headers := make(map[string]string)
-	return httpGetCustomHeader(u, headers)
+	return HttpGetCustomHeader(u, headers)
 }
 
-func httpGetCustomHeader(u string, headers map[string]string) (content []byte) {
+func HttpGetCustomHeader(u string, headers map[string]string) (content []byte) {
 	retry := 0
 doRequest:
 	req, err := http.NewRequest("GET", u, nil)

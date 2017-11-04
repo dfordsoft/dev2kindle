@@ -1,4 +1,4 @@
-package main
+package source
 
 type WeixinYidu struct {
 }

@@ -1,9 +1,10 @@
-package main
+package source
 
 import (
 	"log"
 	"regexp"
 
+	"github.com/dfordsoft/dev2kindle/httputil"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -15,7 +16,7 @@ type Xitu struct {
 }
 
 func (x *Xitu) resolveFinalURL(link chan string, u string) {
-	content := httpGet(u)
+	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {
 		return

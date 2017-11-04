@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dfordsoft/dev2kindle/httputil"
 )
 
 type Instapaper struct {
@@ -95,7 +97,7 @@ func (i *Instapaper) EditUrl(u string) {
 		"form_key":      {i.formKey},
 	}
 
-	httpPostBasicAuth("https://www.instapaper.com/edit", postValues.Encode(), i.Username, i.Password)
+	httputil.HttpPostBasicAuth("https://www.instapaper.com/edit", postValues.Encode(), i.Username, i.Password)
 }
 
 func (i *Instapaper) AddUrl(u string) {
@@ -103,7 +105,7 @@ func (i *Instapaper) AddUrl(u string) {
 		"url": {u},
 	}
 
-	httpPostBasicAuth("https://www.instapaper.com/api/add", postValues.Encode(), i.Username, i.Password)
+	httputil.HttpPostBasicAuth("https://www.instapaper.com/api/add", postValues.Encode(), i.Username, i.Password)
 }
 
 func (i *Instapaper) getIDs(u string) (res []int) {
@@ -117,7 +119,7 @@ func (i *Instapaper) getIDs(u string) (res []int) {
 		"Cache-Control":             "max-age=0",
 		"Cookie":                    i.cookie,
 	}
-	content := httpGetCustomHeader(u, headers)
+	content := httputil.HttpGetCustomHeader(u, headers)
 	if len(content) == 0 {
 		return res
 	}
@@ -146,7 +148,7 @@ func (i *Instapaper) removeLink(id int) {
 		"X-Requested-With":          "XMLHttpRequest",
 		"Cookie":                    i.cookie,
 	}
-	httpPostCustomHeader("https://www.instapaper.com/delete_articles", fmt.Sprintf("[%d]", id), headers, false)
+	httputil.HttpPostCustomHeader("https://www.instapaper.com/delete_articles", fmt.Sprintf("[%d]", id), headers, false)
 }
 
 func (i *Instapaper) RemoveAllLinks() {
@@ -182,7 +184,7 @@ func (i *Instapaper) PushToKindle() {
 		"X-Requested-With":          "XMLHttpRequest",
 		"Cookie":                    i.cookie,
 	}
-	httpPostCustomHeader("https://www.instapaper.com/user/kindle_send_now", postValues.Encode(), headers, true)
+	httputil.HttpPostCustomHeader("https://www.instapaper.com/user/kindle_send_now", postValues.Encode(), headers, true)
 }
 
 func (i *Instapaper) GetFormKey() {
@@ -196,7 +198,7 @@ func (i *Instapaper) GetFormKey() {
 		"Cache-Control":             "max-age=0",
 		"Cookie":                    i.cookie,
 	}
-	content := httpGetCustomHeader("https://www.instapaper.com/user", headers)
+	content := httputil.HttpGetCustomHeader("https://www.instapaper.com/user", headers)
 	if len(content) == 0 {
 		return
 	}

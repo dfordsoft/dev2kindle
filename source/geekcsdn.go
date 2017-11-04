@@ -1,4 +1,4 @@
-package main
+package source
 
 import (
 	"encoding/json"
@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"regexp"
 	"time"
+
+	"github.com/dfordsoft/dev2kindle/httputil"
 )
 
 type NewsList struct {
@@ -35,7 +37,7 @@ func (c *GeekCSDN) Fetch(link chan string) {
 		"_":        {fmt.Sprintf("%d", time.Now().Unix())},
 	}
 	u := `http://geek.csdn.net/service/news/get_news_list?` + getValues.Encode()
-	content := httpGet(u)
+	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {
 		return

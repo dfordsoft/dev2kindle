@@ -1,4 +1,4 @@
-package main
+package source
 
 import (
 	"fmt"
@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/dfordsoft/dev2kindle/config"
+	"github.com/dfordsoft/dev2kindle/httputil"
 )
 
 type Toutiao struct {
@@ -41,14 +44,14 @@ func (t *Toutiao) Fetch(link chan string) {
 	u := fmt.Sprintf("https://toutiao.io/prev/%4.4d-%2.2d-%2.2d", now.Year(), now.Month(), now.Day())
 	t.fetchArticles(link, u)
 
-	for _, id := range config.ToutiaoSubjects {
+	for _, id := range config.Data.ToutiaoSubjects {
 		u := fmt.Sprintf("https://toutiao.io/subjects/%d?f=new", id)
 		t.fetchArticles(link, u)
 	}
 }
 
 func (t *Toutiao) fetchArticles(link chan string, u string) {
-	content := httpGet(u)
+	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {
 		return

@@ -1,4 +1,4 @@
-package main
+package httputil
 
 import (
 	"io/ioutil"
@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func httpPostBasicAuth(u string, data string, username string, password string) (content []byte) {
+func HttpPostBasicAuth(u string, data string, username string, password string) (content []byte) {
 	retry := 0
 doRequest:
 	req, err := http.NewRequest("POST", u, strings.NewReader(data))
@@ -54,7 +54,7 @@ doRequest:
 	return content
 }
 
-func httpPostCustomHeader(u string, data string, headers map[string]string, noRedirect bool) (content []byte) {
+func HttpPostCustomHeader(u string, data string, headers map[string]string, noRedirect bool) (content []byte) {
 	retry := 0
 doRequest:
 	req, err := http.NewRequest("POST", u, strings.NewReader(data))

@@ -2,10 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -14,26 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dfordsoft/dev2kindle/config"
+	"github.com/dfordsoft/dev2kindle/source"
 	_ "github.com/mattn/go-sqlite3"
 	flag "github.com/ogier/pflag"
 )
-
-type Config struct {
-	Kindle               string   `json:"kindle"`
-	Username             string   `json:"instapaper_username"`
-	Password             string   `json:"instapaper_password"`
-	SegmentFaultEnabled  bool     `json:"segmentfault_enabled"`
-	GeekCSDNEnabled      bool     `json:"geekcsdn_enabled"`
-	GoldXituEnabled      bool     `json:"goldxitu_enabled"`
-	ToutiaoEnabled       bool     `json:"toutiaoio_enabled"`
-	JinTianKanShaEnabled bool     `json:"jintiankansha_enabled"`
-	WeixinYiduEnabled    bool     `json:"weixinyidu_enabled"`
-	RSSEnabled           bool     `json:"rss_enabled"`
-	ToutiaoSubjects      []int    `json:"toutiaoio_subjects"`
-	JinTianKanShaColumns []string `json:"jintiankansha_columns"`
-	WeixinYiduIDs        []string `json:"weixinyidu_ids"`
-	RSSFeeds             []string `json:"rss_feeds"`
-}
 
 var (
 	client                *http.Client
@@ -44,7 +27,6 @@ var (
 	instapaperPassword    string
 	db                    *sql.DB
 	linkCountInInstapaper int
-	config                Config
 )
 
 func isFileExists(path string) (bool, error) {
@@ -237,31 +219,16 @@ func main() {
 	flag.BoolVar(&pushToKindle, "pushToKindle", false, "push articles in instapaer to kindle now")
 	flag.Parse()
 
-	fh, err := os.Open(configPath)
-	if err != nil {
-		log.Fatal("opening ", configPath, " failed")
-		return
-	}
-	defer fh.Close()
-	configcontent, err := ioutil.ReadAll(fh)
-	if err != nil {
-		log.Fatal("reading ", configPath, " failed")
-		return
-	}
+	config.LoadConfig(configPath)
 
-	if err = json.Unmarshal(configcontent, &config); err != nil {
-		log.Fatal("parsing ", configPath, " failed")
-		return
+	if len(kindleMailbox) == 0 && len(config.Data.Kindle) != 0 {
+		kindleMailbox = config.Data.Kindle
 	}
-
-	if len(kindleMailbox) == 0 && len(config.Kindle) != 0 {
-		kindleMailbox = config.Kindle
+	if len(instapaperUsername) == 0 && len(config.Data.Username) != 0 {
+		instapaperUsername = config.Data.Username
 	}
-	if len(instapaperUsername) == 0 && len(config.Username) != 0 {
-		instapaperUsername = config.Username
-	}
-	if len(instapaperPassword) == 0 && len(config.Password) != 0 {
-		instapaperPassword = config.Password
+	if len(instapaperPassword) == 0 && len(config.Data.Password) != 0 {
+		instapaperPassword = config.Data.Password
 	}
 
 	if len(kindleMailbox) == 0 || len(instapaperPassword) == 0 || len(instapaperUsername) == 0 {
@@ -269,17 +236,17 @@ func main() {
 		flag.Usage()
 		return
 	}
-	if len(config.ToutiaoSubjects) == 0 {
-		config.ToutiaoEnabled = false
+	if len(config.Data.ToutiaoSubjects) == 0 {
+		config.Data.ToutiaoEnabled = false
 	}
-	if len(config.RSSFeeds) == 0 {
-		config.RSSEnabled = false
+	if len(config.Data.RSSFeeds) == 0 {
+		config.Data.RSSEnabled = false
 	}
-	if len(config.JinTianKanShaColumns) == 0 {
-		config.JinTianKanShaEnabled = false
+	if len(config.Data.JinTianKanShaColumns) == 0 {
+		config.Data.JinTianKanShaEnabled = false
 	}
-	if len(config.WeixinYiduIDs) == 0 {
-		config.WeixinYiduEnabled = false
+	if len(config.Data.WeixinYiduIDs) == 0 {
+		config.Data.WeixinYiduEnabled = false
 	}
 
 	log.Println("kindle mailbox:", kindleMailbox)
@@ -343,39 +310,39 @@ func main() {
 
 	log.Println("start fetch articles...")
 	go pushLinksFromInstapaperToKindle()
-	var t *Toutiao
-	if config.ToutiaoEnabled {
-		t = &Toutiao{}
+	var t *source.Toutiao
+	if config.Data.ToutiaoEnabled {
+		t = &source.Toutiao{}
 		go t.Fetch(link)
 	}
-	var x *Xitu
-	if config.GoldXituEnabled {
-		x = &Xitu{}
+	var x *source.Xitu
+	if config.Data.GoldXituEnabled {
+		x = &source.Xitu{}
 		go x.Fetch(link)
 	}
-	var c *GeekCSDN
-	if config.GeekCSDNEnabled {
-		c = &GeekCSDN{}
+	var c *source.GeekCSDN
+	if config.Data.GeekCSDNEnabled {
+		c = &source.GeekCSDN{}
 		go c.Fetch(link)
 	}
-	var s *SegmentFault
-	if config.SegmentFaultEnabled {
-		s = &SegmentFault{}
+	var s *source.SegmentFault
+	if config.Data.SegmentFaultEnabled {
+		s = &source.SegmentFault{}
 		go s.Fetch(link)
 	}
-	var r *RSSFeed
-	if config.RSSEnabled {
-		r = &RSSFeed{}
+	var r *source.RSSFeed
+	if config.Data.RSSEnabled {
+		r = &source.RSSFeed{}
 		go r.Fetch(link)
 	}
-	var j *JinTianKanSha
-	if config.JinTianKanShaEnabled {
-		j = &JinTianKanSha{}
+	var j *source.JinTianKanSha
+	if config.Data.JinTianKanShaEnabled {
+		j = &source.JinTianKanSha{}
 		go j.Fetch(link)
 	}
-	var w *WeixinYidu
-	if config.WeixinYiduEnabled {
-		w = &WeixinYidu{}
+	var w *source.WeixinYidu
+	if config.Data.WeixinYiduEnabled {
+		w = &source.WeixinYidu{}
 		go w.Fetch(link)
 	}
 
@@ -402,25 +369,25 @@ func main() {
 		case <-halfAnHourTicker.C:
 			pushLinksFromInstapaperToKindle()
 		case <-hourTicker.C:
-			if config.ToutiaoEnabled {
+			if config.Data.ToutiaoEnabled {
 				go t.Fetch(link)
 			}
-			if config.GoldXituEnabled {
+			if config.Data.GoldXituEnabled {
 				go x.Fetch(link)
 			}
-			if config.GeekCSDNEnabled {
+			if config.Data.GeekCSDNEnabled {
 				go c.Fetch(link)
 			}
-			if config.SegmentFaultEnabled {
+			if config.Data.SegmentFaultEnabled {
 				go s.Fetch(link)
 			}
-			if config.RSSEnabled {
+			if config.Data.RSSEnabled {
 				go r.Fetch(link)
 			}
-			if config.WeixinYiduEnabled {
+			if config.Data.WeixinYiduEnabled {
 				go w.Fetch(link)
 			}
-			if config.JinTianKanShaEnabled {
+			if config.Data.JinTianKanShaEnabled {
 				go j.Fetch(link)
 			}
 		}

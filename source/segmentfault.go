@@ -1,4 +1,4 @@
-package main
+package source
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/dfordsoft/dev2kindle/httputil"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -17,7 +18,7 @@ type SegmentFault struct {
 }
 
 func (s *SegmentFault) extractFinalURL(u string) string {
-	content := httpGet(u)
+	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {
 		return ""
@@ -31,7 +32,7 @@ func (s *SegmentFault) extractFinalURL(u string) string {
 }
 
 func (s *SegmentFault) resolveFinalURL(link chan string, u string) {
-	content := httpGet(u)
+	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {
 		return
