@@ -14,6 +14,11 @@ import (
 	"github.com/dfordsoft/dev2kindle/httputil"
 )
 
+var (
+	client           *http.Client
+	noRedirectClient *http.Client
+)
+
 type Instapaper struct {
 	Username string
 	Password string

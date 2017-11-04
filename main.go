@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
@@ -19,12 +18,7 @@ import (
 )
 
 var (
-	client                *http.Client
-	noRedirectClient      *http.Client
-	instapaper            *Instapaper
 	kindleMailbox         string
-	instapaperUsername    string
-	instapaperPassword    string
 	db                    *sql.DB
 	linkCountInInstapaper int
 )
@@ -93,38 +87,6 @@ func insertIntoDatabase(u string) bool {
 	return true
 }
 
-func addLinksToInstapaper() {
-	rows, err := db.Query("select id,url from links where instapaper='false' order by id limit 50;")
-	if err != nil {
-		log.Println("querying from database failed", err)
-	}
-	defer rows.Close()
-	var ids []int
-	for rows.Next() {
-		var id int
-		var u string
-		err = rows.Scan(&id, &u)
-		if err != nil {
-			log.Println("scanning rows failed", err)
-			continue
-		}
-		ids = append(ids, id)
-		// add to instapaer
-		instapaper.AddUrl(u)
-		linkCountInInstapaper++
-		if linkCountInInstapaper >= 50 {
-			break
-		}
-	}
-	err = rows.Err()
-	if err != nil {
-		log.Println("reading rows failed", err)
-	}
-	for _, id := range ids {
-		db.Exec("update links set instapaper='true' where id=?", id)
-	}
-}
-
 func collectLink(u string) {
 	if existsInDatabase(u) {
 		// just drop it
@@ -191,32 +153,10 @@ func formatURL(theURL *url.URL) (u string) {
 	return
 }
 
-func pushLinksFromInstapaperToKindle() {
-	if linkCountInInstapaper >= 50 {
-		// remove old links
-		instapaper.RemoveAllLinks()
-		linkCountInInstapaper = 0
-	}
-	// add new links
-	addLinksToInstapaper()
-	if linkCountInInstapaper >= 50 {
-		// push to kindle
-		instapaper.PushToKindle()
-	}
-}
-
 func main() {
-	quitAfterPushed := false
-	clearInstapaper := false
-	pushToKindle := false
 	configPath := "config.json"
 	flag.StringVar(&configPath, "config", "config.json", "specify the config file path")
 	flag.StringVar(&kindleMailbox, "kindle", "", "kindle mailbox")
-	flag.StringVar(&instapaperUsername, "username", "", "instapaper username")
-	flag.StringVar(&instapaperPassword, "password", "", "instapaper password")
-	flag.BoolVar(&quitAfterPushed, "quitAfterPushed", false, "quit after pushed")
-	flag.BoolVar(&clearInstapaper, "clearInstapaper", false, "clear instapaper article list")
-	flag.BoolVar(&pushToKindle, "pushToKindle", false, "push articles in instapaer to kindle now")
 	flag.Parse()
 
 	config.LoadConfig(configPath)
@@ -224,18 +164,7 @@ func main() {
 	if len(kindleMailbox) == 0 && len(config.Data.Kindle) != 0 {
 		kindleMailbox = config.Data.Kindle
 	}
-	if len(instapaperUsername) == 0 && len(config.Data.Username) != 0 {
-		instapaperUsername = config.Data.Username
-	}
-	if len(instapaperPassword) == 0 && len(config.Data.Password) != 0 {
-		instapaperPassword = config.Data.Password
-	}
 
-	if len(kindleMailbox) == 0 || len(instapaperPassword) == 0 || len(instapaperUsername) == 0 {
-		log.Println("missing kindle mailbox or instapaer username/password")
-		flag.Usage()
-		return
-	}
 	if len(config.Data.ToutiaoSubjects) == 0 {
 		config.Data.ToutiaoEnabled = false
 	}
@@ -250,38 +179,6 @@ func main() {
 	}
 
 	log.Println("kindle mailbox:", kindleMailbox)
-	log.Println("Instapaper username:", instapaperUsername)
-	log.Println("Instapaper password:", instapaperPassword)
-	log.Println("Quit after pushed:", quitAfterPushed)
-	log.Println("Clear Instapaper articles:", clearInstapaper)
-	log.Println("Push To Kindle:", pushToKindle)
-
-	client = &http.Client{
-		Timeout: 30 * time.Second,
-	}
-	noRedirectClient = &http.Client{
-		Timeout: 30 * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-
-	instapaper = &Instapaper{
-		Username: instapaperUsername,
-		Password: instapaperPassword,
-	}
-	instapaper.Login()
-	instapaper.GetFormKey()
-
-	if pushToKindle {
-		instapaper.PushToKindle()
-		return
-	}
-
-	if clearInstapaper {
-		instapaper.RemoveAllLinks()
-		return
-	}
 
 	openDatabase()
 
@@ -302,14 +199,13 @@ func main() {
 		}
 	}()
 
-	halfAnHourTicker := time.NewTicker(30 * time.Minute)
 	hourTicker := time.NewTicker(60 * time.Minute)
 	defer func() {
 		hourTicker.Stop()
 	}()
 
 	log.Println("start fetch articles...")
-	go pushLinksFromInstapaperToKindle()
+
 	var t *source.Toutiao
 	if config.Data.ToutiaoEnabled {
 		t = &source.Toutiao{}
@@ -346,11 +242,6 @@ func main() {
 		go w.Fetch(link)
 	}
 
-	if quitAfterPushed {
-		quit <- true
-		return
-	}
-
 	go func() {
 		sigchan := make(chan os.Signal, 10)
 		signal.Notify(sigchan, os.Interrupt)
@@ -366,8 +257,6 @@ func main() {
 
 	for {
 		select {
-		case <-halfAnHourTicker.C:
-			pushLinksFromInstapaperToKindle()
 		case <-hourTicker.C:
 			if config.Data.ToutiaoEnabled {
 				go t.Fetch(link)
