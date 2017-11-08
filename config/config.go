@@ -7,14 +7,17 @@ import (
 	"os"
 )
 
+// RegisterInitializer add source initializer
 func RegisterInitializer(i func()) {
 	Initializer = append(Initializer, i)
 }
 
+// RegisterSource add source action function
 func RegisterSource(s func(chan string)) {
 	Sources = append(Sources, s)
 }
 
+// Config stores all items from configuration file
 type Config struct {
 	Kindle               string   `json:"kindle"`
 	Username             string   `json:"instapaper_username"`
@@ -33,11 +36,15 @@ type Config struct {
 }
 
 var (
-	Data        Config
+	// Data stores all items from main configuration file
+	Data Config
+	// Initializer all source initializers
 	Initializer []func()
-	Sources     []func(chan string)
+	// Sources all source action functions
+	Sources []func(chan string)
 )
 
+// LoadConfig loads main configuration file to Data variable as Config struct
 func LoadConfig(configPath string) {
 	fh, err := os.Open(configPath)
 	if err != nil {
