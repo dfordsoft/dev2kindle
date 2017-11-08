@@ -7,10 +7,19 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-type RSSFeed struct {
+func init() {
+	config.RegisterInitializer(func() {
+		if config.Data.RSSEnabled && len(config.Data.RSSFeeds) > 0 {
+			t := &rssFeed{}
+			config.RegisterSource(t.fetch)
+		}
+	})
 }
 
-func (r *RSSFeed) Fetch(link chan string) {
+type rssFeed struct {
+}
+
+func (r *rssFeed) fetch(link chan string) {
 	fp := gofeed.NewParser()
 	for _, f := range config.Data.RSSFeeds {
 		feed, err := fp.ParseURL(f)

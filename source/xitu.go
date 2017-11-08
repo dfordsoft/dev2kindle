@@ -4,18 +4,28 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/dfordsoft/dev2kindle/config"
 	"github.com/dfordsoft/dev2kindle/httputil"
 	"github.com/mmcdole/gofeed"
 )
+
+func init() {
+	config.RegisterInitializer(func() {
+		if config.Data.GoldXituEnabled {
+			t := &xitu{}
+			config.RegisterSource(t.fetch)
+		}
+	})
+}
 
 const (
 	xituFeedURL = "http://gold.xitu.io/rss"
 )
 
-type Xitu struct {
+type xitu struct {
 }
 
-func (x *Xitu) resolveFinalURL(link chan string, u string) {
+func (x *xitu) resolveFinalURL(link chan string, u string) {
 	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {
@@ -30,7 +40,7 @@ func (x *Xitu) resolveFinalURL(link chan string, u string) {
 	}
 }
 
-func (x *Xitu) Fetch(link chan string) {
+func (x *xitu) fetch(link chan string) {
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL(xituFeedURL)
 	if err != nil {

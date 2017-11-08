@@ -11,10 +11,19 @@ import (
 	"github.com/dfordsoft/dev2kindle/httputil"
 )
 
-type Toutiao struct {
+func init() {
+	config.RegisterInitializer(func() {
+		if config.Data.ToutiaoEnabled && len(config.Data.ToutiaoSubjects) > 0 {
+			t := &toutiao{}
+			config.RegisterSource(t.fetch)
+		}
+	})
 }
 
-func (t *Toutiao) resolveFinalURL(u string) string {
+type toutiao struct {
+}
+
+func (t *toutiao) resolveFinalURL(u string) string {
 	retry := 0
 doResolve:
 	resp, err := http.Get(u)
@@ -39,7 +48,7 @@ doResolve:
 	return finalURL
 }
 
-func (t *Toutiao) Fetch(link chan string) {
+func (t *toutiao) fetch(link chan string) {
 	now := time.Now()
 	u := fmt.Sprintf("https://toutiao.io/prev/%4.4d-%2.2d-%2.2d", now.Year(), now.Month(), now.Day())
 	t.fetchArticles(link, u)
@@ -50,7 +59,7 @@ func (t *Toutiao) Fetch(link chan string) {
 	}
 }
 
-func (t *Toutiao) fetchArticles(link chan string, u string) {
+func (t *toutiao) fetchArticles(link chan string, u string) {
 	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {

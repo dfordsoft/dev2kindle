@@ -21,7 +21,3 @@ push articles for developers to kindle
 
 ### TODO
 - support save links to Pocket service
-- use own readability implementation
-- generate .mobi file and send it to kindle mailbox by dev2kindle
-- remove iwgc.cn dependency, crawl weixin mp articles by another reliable service
-- read articles by web browser directly 

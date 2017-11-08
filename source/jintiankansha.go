@@ -1,7 +1,18 @@
 package source
 
-type JinTianKanSha struct {
+import "github.com/dfordsoft/dev2kindle/config"
+
+func init() {
+	config.RegisterInitializer(func() {
+		if config.Data.JinTianKanShaEnabled && len(config.Data.JinTianKanShaColumns) > 0 {
+			t := &jinTianKanSha{}
+			config.RegisterSource(t.fetch)
+		}
+	})
 }
 
-func (t *JinTianKanSha) Fetch(link chan string) {
+type jinTianKanSha struct {
+}
+
+func (t *jinTianKanSha) fetch(link chan string) {
 }

@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/dfordsoft/dev2kindle/config"
 	"github.com/dfordsoft/dev2kindle/httputil"
 	"github.com/mmcdole/gofeed"
 )
@@ -14,10 +15,19 @@ const (
 	sfFeedURL = "https://segmentfault.com/news/feeds"
 )
 
-type SegmentFault struct {
+func init() {
+	config.RegisterInitializer(func() {
+		if config.Data.SegmentFaultEnabled {
+			t := &segmentFault{}
+			config.RegisterSource(t.fetch)
+		}
+	})
 }
 
-func (s *SegmentFault) extractFinalURL(u string) string {
+type segmentFault struct {
+}
+
+func (s *segmentFault) extractFinalURL(u string) string {
 	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {
@@ -31,7 +41,7 @@ func (s *SegmentFault) extractFinalURL(u string) string {
 	return ""
 }
 
-func (s *SegmentFault) resolveFinalURL(link chan string, u string) {
+func (s *segmentFault) resolveFinalURL(link chan string, u string) {
 	content := httputil.HttpGet(u)
 
 	if len(content) == 0 {
@@ -53,7 +63,7 @@ func (s *SegmentFault) resolveFinalURL(link chan string, u string) {
 	}
 }
 
-func (s *SegmentFault) Fetch(link chan string) {
+func (s *segmentFault) fetch(link chan string) {
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL(sfFeedURL)
 	if err != nil {

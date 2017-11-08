@@ -7,6 +7,14 @@ import (
 	"os"
 )
 
+func RegisterInitializer(i func()) {
+	Initializer = append(Initializer, i)
+}
+
+func RegisterSource(s func(chan string)) {
+	Sources = append(Sources, s)
+}
+
 type Config struct {
 	Kindle               string   `json:"kindle"`
 	Username             string   `json:"instapaper_username"`
@@ -25,7 +33,9 @@ type Config struct {
 }
 
 var (
-	Data Config
+	Data        Config
+	Initializer []func()
+	Sources     []func(chan string)
 )
 
 func LoadConfig(configPath string) {

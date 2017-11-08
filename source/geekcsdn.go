@@ -8,17 +8,23 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/dfordsoft/dev2kindle/config"
 	"github.com/dfordsoft/dev2kindle/httputil"
 )
 
-type NewsList struct {
-	HTML string `json:"html"`
+func init() {
+	config.RegisterInitializer(func() {
+		if config.Data.GeekCSDNEnabled {
+			t := &geekCSDN{}
+			config.RegisterSource(t.fetch)
+		}
+	})
 }
 
-type GeekCSDN struct {
+type geekCSDN struct {
 }
 
-func (c *GeekCSDN) extractURLs(link chan string, html string) {
+func (c *geekCSDN) extractURLs(link chan string, html string) {
 	regex := regexp.MustCompile(`<a href="([^"]+)" class="title" target="_blank">`)
 	list := regex.FindAllStringSubmatch(html, -1)
 	for _, l := range list {
@@ -28,7 +34,7 @@ func (c *GeekCSDN) extractURLs(link chan string, html string) {
 	}
 }
 
-func (c *GeekCSDN) Fetch(link chan string) {
+func (c *geekCSDN) fetch(link chan string) {
 	getValues := url.Values{
 		"username": {""},
 		"from":     {"-"},
@@ -42,7 +48,10 @@ func (c *GeekCSDN) Fetch(link chan string) {
 	if len(content) == 0 {
 		return
 	}
-	var newsList NewsList
+	var newsList struct {
+		HTML string `json:"html"`
+	}
+
 	if err := json.Unmarshal(content, &newsList); err != nil {
 		log.Println("unmarshalling failed", err)
 		return
